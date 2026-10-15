@@ -93,4 +93,4 @@ sequenceDiagram
 
 日志允许：timestamp、level、requestId、userId 哈希、path、status、durationMs。禁止验证码、JWT、完整手机号/学号、SQL 明文参数中的隐私字段。
 
-配置项：成员 GitHub、校区枚举、微信 AppId（没有则账号密码登录）。密钥只进环境变量。
+配置项：成员 GitHub、校区枚举、微信 AppId（没有则学号 + 本平台密码登录）、SMTP。密钥只进环境变量。不收集学校统一认证密码。

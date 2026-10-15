@@ -40,7 +40,7 @@ flowchart LR
 4. 小程序提交审核、发布后，同学可在微信里搜索打开并注册登录。
 5. 网页同样走该域名，例如 `https://www.你的域名.com` 用户端、`https://admin.你的域名.com` 后台。
 
-备案未下来之前，一直用第 1 节，不要停开发。订阅消息、正式登录在拿到 AppId 后再接通；未接通时用账号密码登录，Web 与小程序共用 `/auth/login`。
+备案未下来之前，一直用第 1 节，不要停开发。订阅消息、正式微信登录在拿到 AppId 后再接通；未接通时用学号 + 本平台密码（首次学校邮箱验证码）登录，Web 与小程序共用 `/auth/login`。邮箱验证码可用任意可发信的 SMTP，密钥进环境变量。
 
 ## 4. 配置项（三套环境同一套代码）
 
@@ -50,6 +50,7 @@ flowchart LR
 | `CORS_ORIGINS` | 网页 origin 列表，不能用 `*` 加 Cookie |
 | `WX_APPID` / `WX_SECRET` | 仅环境变量 |
 | `JWT_SECRET` | 仅环境变量 |
+| `MAIL_*` | 发验证码的 SMTP，仅环境变量 |
 | `MYSQL_*` / `REDIS_*` | Compose 内网 |
 
 小程序：`config.js` 分 `develop | trial | release` 三个 `apiBase`。Web：`.env.development` / `.env.production` 的 `VITE_API_BASE`。禁止把密钥写进仓库。
@@ -58,5 +59,5 @@ flowchart LR
 
 - F：Compose、Nginx、部署说明、网页生产构建。
 - E：开发者工具工程、预览二维码步骤、正式版域名清单。
-- A：登录在三种入口行为一致（同一用户表）。
+- A：学号登录在小程序、网页行为一致（同一用户表）；微信未绑定学号不能报名。
 - 答辩最低标准：网页公网或局域网可点；小程序开发者工具扫码可走通主路径；两者打到同一后端（用同一测试账号在两端能看到同一条活动）。

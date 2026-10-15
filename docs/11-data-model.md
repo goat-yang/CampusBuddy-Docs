@@ -17,7 +17,7 @@ erDiagram
 
 | 表 | 说明 |
 | --- | --- |
-| t_user | openid、phone 可空唯一；credit_score 0–100；role |
+| t_user | campus_id 唯一（学号/工号）；school_email 可空唯一；openid、phone 可空唯一；password_hash；credit_score 0–100；role；affiliation=`SHU` 或 `DEMO` |
 | t_tag / t_user_tag / t_activity_tag | 标签字典与多对多 |
 | t_activity | publisher_id、人数上下限、时间地点、status |
 | t_signup | UNIQUE(activity_id, user_id) |

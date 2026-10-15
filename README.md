@@ -11,6 +11,7 @@
 | 看全过程怎么排 | [过程、可行性与风险](docs/15-process-feasibility-risk.md) |
 | 看产品要解决什么 | [愿景与范围](docs/01-vision-and-scope.md)、[PRD](docs/02-prd.md) |
 | 看市场、竞品与是否值得做 | [市场调研](docs/06-market-research.md)、[经济分析](docs/07-economic-analysis.md) |
+| 看上大工号怎么登录、验证码怎么申请 | [校园身份](docs/16-campus-identity.md) |
 | 看十周怎么交付 | [开发大纲](docs/10-baseline-and-batches.md)、[六人分工](docs/05-team-and-modules.md) |
 | 实现接口 | [总体 TRD](docs/03-trd.md)、[接口契约](docs/04-api-contract.md)、[数据模型](docs/11-data-model.md) |
 | 领取模块 | [A 用户鉴权](docs/trd/a-auth.md)、[B 活动报名](docs/trd/b-activity.md)、[C 推荐](docs/trd/c-reco.md)、[D 信用运营](docs/trd/d-credit-ops.md)、[E 小程序](docs/trd/e-miniprogram.md)、[F Web](docs/trd/f-web.md) |

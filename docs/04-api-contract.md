@@ -33,7 +33,7 @@
 ## 2. 共用对象
 
 **UserBrief** `{ id, nickname, avatar, creditScore, creditLevel, college }`  
-`creditLevel`：`EXCELLENT|GOOD|NORMAL|RESTRICTED`（对应 90–100 / 75–89 / 60–74 / 0–59）。不含手机号、学号、openid。
+`creditLevel`：`EXCELLENT|GOOD|NORMAL|RESTRICTED`（对应 90–100 / 75–89 / 60–74 / 0–59）。不含手机号、学号/工号、openid、学校邮箱明文。
 
 **ActivityCard** `{ id, title, type, tags, campus, place, startTime, endTime, enrollDeadline, minNum, maxNum, enrollNum, remainCount, status, cover, publisher, reason }`  
 `reason` 仅推荐接口有值，列表接口为 `null`。`type`：`MEAL|SPORT|STUDY|TRIP|CONTEST|FUN|OTHER`。
@@ -45,23 +45,26 @@
 
 活动 `status`：`DRAFT|PENDING|REJECTED|PUBLISHED|SIGNUP|GROUPED|ONGOING|FINISHED|OFFLINE`。对外列表只出现 `PUBLISHED`（未到报名但已审过，可选）与 `SIGNUP`。可报名仅 `SIGNUP`。
 
-## 3. 接口清单（42）
+## 3. 接口清单（开发方案 42 条 + 验证码发送）
 
-路径均相对 `/api/v1`。责任与开发方案一致。
+路径均相对 `/api/v1`。责任与开发方案一致。校园身份规则见 [16](16-campus-identity.md)。
 
-### 认证与用户（7）A
+### 认证与用户（7 + 发码）A
 
 | # | 方法 | 路径 | 请求 | 成功 data |
 | ---: | --- | --- | --- | --- |
-| 1 | POST | /auth/login | `{ "mode":"WECHAT"|"PASSWORD", "code"?, "phone"?, "password"?, "smsCode"? }` | `{ accessToken, refreshToken, expiresIn, user }` |
+| — | POST | /auth/otp/send | `{ "channel":"EMAIL", "campusId", "email" }` | `{ "ttlSec": 300 }` |
+| 1 | POST | /auth/login | `{ "mode":"CAMPUS_PASSWORD"\|"CAMPUS_OTP"\|"WECHAT", "campusId"?, "password"?, "email"?, "otp"?, "code"? }` | `{ accessToken, refreshToken, expiresIn, user }` |
 | 2 | POST | /auth/refresh | `{ "refreshToken" }` | 同登录令牌字段 |
-| 3 | GET | /users/me | — | 完整资料：Card 用户字段 + `grade, major, campus, bio, phoneMasked` |
+| 3 | GET | /users/me | — | 完整资料：Card 用户字段 + `campusIdMasked, grade, major, campus, bio, emailMasked` |
 | 4 | PUT | /users/me | `{ nickname, avatar, college, grade, major, campus, bio }` | 更新后的 me |
 | 5 | GET | /users/me/interests | — | `{ "tagIds": number[], "tags": [{id,name,category}] }` |
 | 6 | PUT | /users/me/interests | `{ "tagIds": number[] }` 长度 3–10 | 同 GET |
-| 7 | GET | /users/{id}/profile | — | 主页：UserBrief + 信用档 + 历史活动数 + 评价摘要；无联系方式 |
+| 7 | GET | /users/{id}/profile | — | 主页：UserBrief + 信用档 + 历史活动数 + 评价摘要；无联系方式、无学号 |
 
-微信 `code` 换 openid 失败时返回 40001，客户端改走 `PASSWORD`。Web 无 `code` 时只用密码或验证码。
+`CAMPUS_OTP`：校验邮箱验证码后，若该 `campusId` 尚未有密码则请求里必须带 `password`（首次设本平台密码）。`CAMPUS_PASSWORD`：`campusId` + 本平台密码。`WECHAT`：小程序 `code` 换 openid；未绑定 `campusId` 的账号只能浏览，报名/发布返回 40300，`message` 提示先绑定学号。
+
+`/auth/otp/send` 只接受学校邮箱域（见 16）。60 秒内重复发送 → 42900。`channel=SMS` 接口可留枚举，V1.0 固定返回 40001「本期仅支持学校邮箱验证码」。不接收、不转发学校统一认证密码。`mode=SHU_OAUTH` 预留，未获信息办批准前不要实现。
 
 ### 活动（8）B
 
@@ -184,7 +187,7 @@
 
 | 能力 | 小程序 E | Web 用户 F | 后台 F |
 | --- | --- | --- | --- |
-| 登录 | mode=WECHAT，失败回 PASSWORD | mode=PASSWORD | 管理员 PASSWORD + 角色校验 |
+| 登录 | WECHAT 预览；报名须已绑学号 | CAMPUS_PASSWORD / 首次 CAMPUS_OTP | 管理员本平台密码 + 角色 |
 | 列表/详情/报名 | 11/12/16 | 同左 | 不报名 |
 | 首页推荐 | 22 + 27 曝光 | 可选同 22 | — |
 | 发布 | 8 + 14 | 8 + 14 | 40 审核 |
