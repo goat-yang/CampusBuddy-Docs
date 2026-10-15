@@ -1,0 +1,17 @@
+.DS_Store
+Thumbs.db
+_commit_msg.txt
+*.log
+.env
+.env.*
+!.env.example
+.idea/
+.vscode/
+__pycache__/
+.venv/
+node_modules/
+target/
+dist/
+*.iml
+docs/team/team-filled.csv
+docs/private/
