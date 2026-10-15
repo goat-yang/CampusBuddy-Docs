@@ -1,128 +1,131 @@
-# 十周按人任务板
+# 十周按人任务（一人一条 Issue）
 
-对照 CoursePilot-Evo 的 Project：按周拆，每个人每周都有条目。GitHub Issues 用同一套标题；Issue 勾选是执行面，本文是真源。姓名填进 [人员表](team/team-signup-template.csv)。
+对照 CoursePilot-Evo：卡片是 **`[E1 草案] …` 这种「一个人 + 一块可验收工作」**，不是「第 N 周」一张表里塞 A–F 六个勾选。本仓对应标题：`[A1][W1] …` 到 `[F10][W10]`。
 
-**不要给每个人建交代码文件夹。** 代码按模块进仓库：
+GitHub Project：https://github.com/users/goat-yang/projects/2/views/1  
+Issue 列表用 label `owner-a`…`owner-f` 或 `week-1`…`week-10` 过滤。
+
+**不要按人名建交代码文件夹。** 代码按模块进仓库：
 
 | 人 | 只往这里交 |
 | --- | --- |
-| A | `backend/src/main/java/com/shu/campusbuddy/auth/` 与 `common/` |
+| A | `backend/.../auth/` 与 `common/` |
 | B | `backend/.../activity/` |
 | C | `backend/.../reco/` |
 | D | `backend/.../credit/` |
 | E | `miniprogram/` |
 | F | `web/`、`deploy/` |
 
-公共契约：`contracts/`。第 1–4 周以文档和空工程为主，第 5 周才大规模写业务。
+第 1–4 周文档和空工程，第 5 周起写业务。史诗 #1–#6 只作模块入口，不当事情本身。
 
 ## 第 1 周 需求对齐
 
-| 人 | 本周必须完成 | 验收 |
+| Issue | 完成后能做什么 | 验收 |
 | --- | --- | --- |
-| A | 冻结登录用例；确认不收集学校 SSO 密码；整理人员 GitHub | 16 + 本仓 Collaborators 名单草稿 |
-| B | 冻结活动/报名用例与状态机名词 | 与 04 用语一致，无「余量/剩余」混用 |
-| C | 冻结推荐输入输出：`batchId, degraded, reason` | 12 与 04 一致 |
-| D | 冻结信用流水与通知类型 | 无「直接改分」表述 |
-| E | 小程序信息架构：首页/列表/详情/发布/我的 | 页面清单进 e-miniprogram |
-| F | Web 信息架构 + 后台菜单 | 页面清单进 f-web |
+| `[A1][W1]` | 冻结校园登录：工号 + 上大邮箱 OTP，禁止 SSO 密码 | 16 + Collaborators 草稿 |
+| `[B1][W1]` | 冻结活动与报名状态机名词 | 与 04 用语一致 |
+| `[C1][W1]` | 冻结推荐输出 batchId、degraded、reason | 三字段进契约 |
+| `[D1][W1]` | 冻结信用流水与通知类型 | 无「直接改分」 |
+| `[E1][W1]` | 列出小程序信息架构 | 清单进 e-miniprogram |
+| `[F1][W1]` | 列出 Web 用户端与后台菜单 | 清单进 f-web |
 
 ## 第 2 周 契约冻结
 
-| 人 | 本周必须完成 | 验收 |
+| Issue | 完成后能做什么 | 验收 |
 | --- | --- | --- |
-| A | `/auth/*` `/users/me` `/health` 字段与正反例 | OpenAPI 可过 `scripts/check_contracts.py` |
-| B | 活动发布体、报名 40902/03/04 | examples 里至少 1 条满员反例 |
-| C | `/reco/for-you` 与 event 埋点 | `degraded` 出现在 schema |
-| D | 信用/通知/后台 overview 字段 | 看板数字全部有路径 |
-| E | 对照 OpenAPI 列小程序将调用的 operationId | 不自造字段名 |
-| F | 对照 OpenAPI 列 portal/admin operationId | 看板不前端累加 |
+| `[A2][W2]` | 冻结鉴权 OpenAPI 与正反例 | `check_contracts.py` 通过 |
+| `[B2][W2]` | 冻结活动发布体与报名 40902/03/04 | 满员反例 |
+| `[C2][W2]` | 冻结 /reco/for-you 与埋点字段 | schema 有 degraded |
+| `[D2][W2]` | 冻结信用、通知与看板字段 | 数字都有路径 |
+| `[E2][W2]` | 列出小程序将调用的 operationId | 不自造字段 |
+| `[F2][W2]` | 列出 portal/admin 将调用的 operationId | 看板不前端累加 |
 
 ## 第 3 周 设计
 
-| 人 | 本周必须完成 | 验收 |
+| Issue | 完成后能做什么 | 验收 |
 | --- | --- | --- |
-| A | 用户/令牌 ER；邮箱域白名单表 | 11 中有 campus_id、school_email |
-| B | 活动/报名 ER；唯一索引说明 | `(activity_id,user_id)` 写进 11 |
-| C | 召回-打分-降级序列图 | 无在线全表 UserCF |
-| D | 流水表、通知表、Redis key 命名 | 无 UPDATE score |
-| E | 小程序线框（可用手绘照片，不提交大图包） | 路径与 app.json 规划一致 |
-| F | portal/admin 线框 + Compose 端口表 | 3306/6379/8080/5173/5174 |
+| `[A3][W3]` | 用户与令牌 ER，含邮箱域白名单 | 11 有 campus_id |
+| `[B3][W3]` | 活动报名 ER 与唯一索引 | `(activity_id,user_id)` |
+| `[C3][W3]` | 召回-打分-降级序列图 | 无在线全表 UserCF |
+| `[D3][W3]` | 流水表、通知表、Redis key | 无 UPDATE score |
+| `[E3][W3]` | 小程序线框 | 与 app.json 规划一致 |
+| `[F3][W3]` | portal/admin 线框与端口表 | 3306/6379/8080/5173/5174 |
 
 ## 第 4 周 空工程可跑
 
-| 人 | 本周必须完成 | 验收 |
+| Issue | 完成后能做什么 | 验收 |
 | --- | --- | --- |
-| A | Spring Boot 能启动；`GET /api/v1/health` 返回封套 | curl 见 code=0 |
-| B | 包路径与表结构 SQL 草案放 `backend/src/main/resources/db/`（实现周再执行） | 不抢跑写报名接口 |
-| C | 特征/权重配置草稿，不接真实流量 | 配置 schema 已在 OpenAPI |
-| D | Redis key 前缀文档；Knife4j 依赖列入 pom（实现周再开） | README 写清未启用 |
-| E | 开发者工具能打开本仓 `miniprogram/` | 占位首页 |
-| F | `docker compose up mysql redis`；portal/admin 占位页 | compose 健康检查绿 |
+| `[A4][W4]` | Spring Boot 启动并返回 health 封套 | curl code=0 |
+| `[B4][W4]` | 建表 SQL 草案，不抢跑报名 | db/ 有草案 |
+| `[C4][W4]` | 特征与权重配置草稿 | 不接真实流量 |
+| `[D4][W4]` | Redis 前缀；Knife4j 列入但不启用 | README 写清 |
+| `[E4][W4]` | 开发者工具打开 miniprogram | 占位首页 |
+| `[F4][W4]` | compose 拉起 MySQL/Redis | 健康检查绿 |
 
 ## 第 5 周 迭代一（登录与发布）
 
-| 人 | 本周必须完成 | 验收 |
+| Issue | 完成后能做什么 | 验收 |
 | --- | --- | --- |
-| A | OTP 发送 + CAMPUS_OTP 首次设密 + CAMPUS_PASSWORD + JWT | 非上大邮箱 40001；60s 重发 42900 |
-| B | 创建活动 DRAFT/PENDING；敏感词 40001 | 未审活动不出现在 GET /activities |
-| C | 空实现：`/reco/for-you` 直接返回 hot 且 `degraded=true` | HTTP 200 code=0 |
-| D | Redis 接通；限流中间件；敏感词词库加载给 B 调 | 无业务分接口也可先合 |
-| E | 登录页（微信）+ 绑定学号提示；活动发布表单调 B | 字段名=OpenAPI |
-| F | Web 登录（工号+密码/OTP）；发布表单 | 与 E 同一 API |
+| `[A5][W5]` | 邮箱 OTP、首次设密、平台密码、JWT | 非上大邮箱 40001；重发 42900 |
+| `[B5][W5]` | 创建活动 DRAFT/PENDING；敏感词 | 未审不进公开列表 |
+| `[C5][W5]` | 降级推荐：hot 且 degraded=true | HTTP 200 code=0 |
+| `[D5][W5]` | Redis、限流、敏感词给 B | B 能调词库 |
+| `[E5][W5]` | 小程序登录、绑学号提示、发布表单 | 字段名=OpenAPI |
+| `[F5][W5]` | Web 工号登录/OTP 与发布表单 | 与 E 同一 API |
 
 ## 第 6 周 迭代一（报名闭环 = V0.1）
 
-| 人 | 本周必须完成 | 验收 |
+| Issue | 完成后能做什么 | 验收 |
 | --- | --- | --- |
-| A | `/users/me` 资料；未绑学号报名 40300 | E/F 文案「先绑定学号」 |
-| B | 报名锁、重复 40902、满员 40903、冲突 40904、候补 | 并发单测或脚本 |
-| C | 维持降级热度榜，开始接可曝光活动查询 | 不读未审活动 |
-| D | 发布审核接口给后台；完成报名不改信用 | PASS 后才 SIGNUP |
-| E | 列表/详情/报名/我的已报 | 满员用 40903 文案 |
-| F | 同左用户端 + 后台待审列表 | 审核 PASS/REJECT |
+| `[A6][W6]` | /users/me；未绑学号报名 40300 | 文案「先绑定学号」 |
+| `[B6][W6]` | 报名锁、候补、40902/03/04 | 并发不超员 |
+| `[C6][W6]` | 降级热度榜只读可曝光活动 | 不读未审 |
+| `[D6][W6]` | 发布审核；报名不改信用 | PASS 后才 SIGNUP |
+| `[E6][W6]` | 列表、详情、报名、我的已报 | 满员 40903 文案 |
+| `[F6][W6]` | 用户端报名 + 后台待审 | PASS/REJECT |
 
 ## 第 7 周 迭代二（推荐与信用）
 
-| 人 | 本周必须完成 | 验收 |
+| Issue | 完成后能做什么 | 验收 |
 | --- | --- | --- |
-| A | 兴趣标签读写；个人主页脱敏 | 主页无学号邮箱 |
-| B | 签到、结束活动、收藏；结束时调 D 结算 | finish 后 status=FINISHED |
-| C | 加权打分 + reason；埋点 `/reco/event` | reason 非空；失败仍 200+degraded |
-| D | 流水完整、完成+2/迟到取消-5/爽约-10 | 禁止 UPDATE score |
-| E | 首页走 for-you；曝光埋点；信用页只读规则 | degraded 不 toast 失败 |
-| F | 用户端推荐可选；信用流水页 | 数字来自接口 |
+| `[A7][W7]` | 兴趣标签与脱敏个人主页 | 无学号邮箱明文 |
+| `[B7][W7]` | 签到、结束、收藏；结束调 D | status=FINISHED |
+| `[C7][W7]` | 加权打分、reason、埋点 | 失败仍 200+degraded |
+| `[D7][W7]` | 流水 +2/-5/-10 | 禁止 UPDATE score |
+| `[E7][W7]` | 首页 for-you、曝光、只读信用 | degraded 不 toast |
+| `[F7][W7]` | 信用流水页 | 数字来自接口 |
 
 ## 第 8 周 迭代二（运营后台 = V0.5）
 
-| 人 | 本周必须完成 | 验收 |
+| Issue | 完成后能做什么 | 验收 |
 | --- | --- | --- |
-| A | 管理员角色只发 JWT，不在前端写死 | role 不来自 body |
-| B | 候补递补、下线、名单仅发起人可见 | 非发起人 403/404 |
-| C | `/admin/reco/config` 权重和=1.00 | 否则 40001 |
-| D | 通知、举报、看板四接口、调分只追加流水 | F 看板禁止 reduce |
-| E | 消息列表、评价、举报入口 | 未读数用 unreadCount |
-| F | admin 全菜单 + ECharts 接 overview | 与接口字段一一对应 |
+| `[A8][W8]` | 管理员角色只在 JWT | body 里的 role 无效 |
+| `[B8][W8]` | 候补递补、下线、名单仅发起人 | 非发起人 403/404 |
+| `[C8][W8]` | reco config 权重和=1.00 | 否则 40001 |
+| `[D8][W8]` | 通知、举报、看板、调分流水 | 看板禁止 reduce |
+| `[E8][W8]` | 消息、评价、举报 | unreadCount |
+| `[F8][W8]` | admin 全菜单 + ECharts | 字段一一对应 |
 
 ## 第 9 周 测试
 
-| 人 | 本周必须完成 | 验收 |
+| Issue | 完成后能做什么 | 验收 |
 | --- | --- | --- |
-| A | 登录/OTP/越权用例 | 报告写入 docs 测试节或 F 汇总 |
-| B | 并发报名与冲突回归 | 不超员 |
-| C | 降级开关与 reason 自测 | Redis 停仍 200 |
-| D | 流水一致性、审核、看板 | 改分可追溯 |
-| E | 真机或开发者工具走通主路径 | 录屏素材给 F |
-| F | 汇总测试报告与缺陷表 | 关闭 P0 |
+| `[A9][W9]` | 登录/OTP/越权测试 | 越权 40400 |
+| `[B9][W9]` | 并发报名与冲突回归 | 不超员 |
+| `[C9][W9]` | 降级开关与 reason 自测 | Redis 停仍 200 |
+| `[D9][W9]` | 流水、审核、看板核对 | 改分可追溯 |
+| `[E9][W9]` | 开发者工具走通并录屏 | 素材给 F |
+| `[F9][W9]` | 汇总测试报告与缺陷 | 关闭 P0 |
 
 ## 第 10 周 部署与答辩
 
-| 人 | 本周必须完成 | 验收 |
+| Issue | 完成后能做什么 | 验收 |
 | --- | --- | --- |
-| A | 演示账号 DEMO 标记；答辩登录脚本 | 不展示真实同学数据 |
-| B | 演示用活动种子（假数据注明） | 不写成真实运营 |
-| C | 推荐演示：一条带 reason，一条 degraded | 口播降级 |
-| D | 看板有数；通知能弹出一条 | Compose 稳定 |
-| E | 开发者工具扫码预览步骤写进 13 | 打到同一后端 |
-| F | 网页发布、视频、行数统计、答辩 PPT 数据页 | 端口与 13 一致 |
+| `[A10][W10]` | DEMO 账号与答辩登录脚本 | 不展示真实同学 |
+| `[B10][W10]` | 演示活动种子（假数据） | 不写成真实运营 |
+| `[C10][W10]` | 一条 reason + 一条 degraded | 口播降级 |
+| `[D10][W10]` | 看板有数、一条通知 | Compose 稳定 |
+| `[E10][W10]` | 扫码预览步骤写入 13 | 同一后端 |
+| `[F10][W10]` | 网页、视频、行数、答辩页 | 端口与 13 一致 |
 
-周五例会只问：本周表里自己那格是否可勾。跨周任务写进 Issue 评论，不在私人目录堆文件。
+重建或补建 Issue：`python scripts/create_github_board.py`（按标题去重）。旧的 `[W1] 需求对齐` 这种六人打包卡已关闭。

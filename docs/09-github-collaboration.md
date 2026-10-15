@@ -2,9 +2,9 @@
 
 小组 **只维护这一个 GitHub 仓库**。现在合入的是 Markdown 与空工程；第 5 周起业务代码也在这里提 Pull Request。不要另开一个“只放代码”的仓，也不要每人一个私人目录。
 
-按周任务真源：[17 周看板](17-weekly-board.md)。GitHub Issues 标题 `[W1] …`～`[W10] …`，每条含 A–F 勾选（#7–#16），模块史诗 #1–#6。
+任务按 **人** 拆，对标 CoursePilot 的 `[E1 草案]`：一条 Issue 只属于一个人。标题 `[A1][W1]` … `[F10][W10]`。不要再用「一周一张、A–F 六个勾选」。清单见 [17](17-weekly-board.md)。模块史诗仍是 #1–#6。
 
-GitHub **Project** 看板需要 token 带 `project` 权限，脚本建不了。仓库页 Projects → New project → 把 #7–#16 加进去，一列一周即可。重复跑 `python scripts/create_github_board.py` 不会建重复 Issue。
+Project：https://github.com/users/goat-yang/projects/2 。新 Issue 若没自动出现，在看板 **Add item** 搜索 `[A1]` 或 `owner-a`。`python scripts/create_github_board.py` 按标题去重。
 
 当前成员 GitHub 账号待收集，收集后 Settings → Collaborators 发邀请，对方接受才有写权限。
 

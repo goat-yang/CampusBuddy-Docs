@@ -1,37 +1,27 @@
-name: 周任务
-description: 按周、按人拆一条可勾选任务
-title: "[W?][?] "
+name: 个人任务切片
+description: 一人一条，对标 CoursePilot 的 [E1 草案]
+title: "[A1][W1] "
 labels: []
 body:
+  - type: dropdown
+    id: owner
+    attributes:
+      label: 负责人
+      options: [A, B, C, D, E, F]
+    validations:
+      required: true
   - type: dropdown
     id: week
     attributes:
       label: 周次
-      options:
-        - W1
-        - W2
-        - W3
-        - W4
-        - W5
-        - W6
-        - W7
-        - W8
-        - W9
-        - W10
-    validations:
-      required: true
-  - type: dropdown
-    id: owner
-    attributes:
-      label: Owner
-      options: [A, B, C, D, E, F]
+      options: [W1, W2, W3, W4, W5, W6, W7, W8, W9, W10]
     validations:
       required: true
   - type: textarea
-    id: done
+    id: outcome
     attributes:
-      label: 完成标准
-      description: 对照 docs/17-weekly-board.md，写可观察的验收，不要写「差不多」。
+      label: 完成后能做什么
+      description: 写可观察结果，不要写「本周大家一起」。对照 docs/17-weekly-board.md。
     validations:
       required: true
   - type: textarea
@@ -40,4 +30,6 @@ body:
       label: 允许改的路径
       value: |
         - backend/src/main/java/com/shu/campusbuddy/
+        - miniprogram/
+        - web/
         - contracts/
