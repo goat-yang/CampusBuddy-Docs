@@ -1,0 +1,16 @@
+{
+  "title": "今晚宝山操场跑步",
+  "type": "SPORT",
+  "tagIds": [1, 2],
+  "description": "轻松慢跑 5 公里",
+  "campus": "BAOSHAN",
+  "place": "操场",
+  "placeNote": "西门集合",
+  "startTime": "2026-10-20 19:30:00",
+  "endTime": "2026-10-20 21:00:00",
+  "enrollDeadline": "2026-10-20 19:00:00",
+  "minNum": 3,
+  "maxNum": 8,
+  "imageUrls": [],
+  "status": "PENDING"
+}

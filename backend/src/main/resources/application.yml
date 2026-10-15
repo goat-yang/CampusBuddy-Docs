@@ -1,0 +1,6 @@
+server:
+  port: 8080
+spring:
+  application:
+    name: campusbuddy
+# 业务数据源在实现阶段再打开。缺 JWT_SECRET 时不要用默认值上演示机。

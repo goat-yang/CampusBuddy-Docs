@@ -1,0 +1,43 @@
+name: 周任务
+description: 按周、按人拆一条可勾选任务
+title: "[W?][?] "
+labels: []
+body:
+  - type: dropdown
+    id: week
+    attributes:
+      label: 周次
+      options:
+        - W1
+        - W2
+        - W3
+        - W4
+        - W5
+        - W6
+        - W7
+        - W8
+        - W9
+        - W10
+    validations:
+      required: true
+  - type: dropdown
+    id: owner
+    attributes:
+      label: Owner
+      options: [A, B, C, D, E, F]
+    validations:
+      required: true
+  - type: textarea
+    id: done
+    attributes:
+      label: 完成标准
+      description: 对照 docs/17-weekly-board.md，写可观察的验收，不要写「差不多」。
+    validations:
+      required: true
+  - type: textarea
+    id: paths
+    attributes:
+      label: 允许改的路径
+      value: |
+        - backend/src/main/java/com/shu/campusbuddy/
+        - contracts/

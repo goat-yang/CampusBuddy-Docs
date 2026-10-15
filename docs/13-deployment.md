@@ -20,7 +20,7 @@ flowchart LR
 
 | 端 | 怎么用 |
 | --- | --- |
-| 后端 | 本机或一台云主机 `docker compose up`：MySQL、Redis、API。端口 8080。 |
+| 后端 | 本机或一台云主机，在 `deploy/` 执行 `docker compose up mysql redis`；API 能编译后再加 `--profile app`。端口 8080。 |
 | 网页用户端 / 后台 | Vite 开发服务器或 Nginx 静态资源。浏览器打开 `http://服务器IP:80` 或 `http://localhost:5173`。同学用同一局域网地址即可。 |
 | 小程序 | 微信开发者工具导入项目；详情里勾选「不校验合法域名」。手机扫工具里的预览/调试二维码。`app.js` 里 `apiBase` 填电脑的局域网 IP（手机和电脑同一 Wi-Fi）或云主机 IP。 |
 

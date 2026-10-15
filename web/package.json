@@ -1,0 +1,12 @@
+{
+  "name": "campusbuddy-web",
+  "private": true,
+  "version": "0.0.1",
+  "scripts": {
+    "dev:portal": "vite --config apps/portal/vite.config.js",
+    "dev:admin": "vite --config apps/admin/vite.config.js --port 5174"
+  },
+  "devDependencies": {
+    "vite": "^5.4.10"
+  }
+}

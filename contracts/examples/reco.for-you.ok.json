@@ -1,0 +1,37 @@
+{
+  "code": 0,
+  "message": "ok",
+  "data": {
+    "batchId": "batch-20261015-01",
+    "degraded": false,
+    "list": [
+      {
+        "id": 30001,
+        "title": "今晚宝山操场跑步",
+        "type": "SPORT",
+        "tags": ["跑步", "运动"],
+        "campus": "BAOSHAN",
+        "place": "操场",
+        "startTime": "2026-10-20 19:30:00",
+        "endTime": "2026-10-20 21:00:00",
+        "enrollDeadline": "2026-10-20 19:00:00",
+        "minNum": 3,
+        "maxNum": 8,
+        "enrollNum": 4,
+        "remainCount": 4,
+        "status": "SIGNUP",
+        "cover": null,
+        "publisher": {
+          "id": 10002,
+          "nickname": "发起人",
+          "avatar": null,
+          "creditScore": 92,
+          "creditLevel": "EXCELLENT",
+          "college": "计算机工程与科学学院"
+        },
+        "reason": "标签匹配跑步 · 今晚 · 同校区"
+      }
+    ]
+  },
+  "requestId": "99999999-9999-4999-8999-999999999999"
+}

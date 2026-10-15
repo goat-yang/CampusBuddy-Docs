@@ -1,6 +1,14 @@
 # CampusBuddy：开发 Agent 规范
 
-当前是文档与接口契约阶段；业务服务尚未实现。先读 README、docs/10-baseline-and-batches.md、docs/08-engineering-standards.md、docs/04-api-contract.md，再读负责模块的子 TRD。代码与现状如实报告，不把计划写成已上线能力。
+当前是文档、契约与空工程阶段；业务服务尚未实现。**按下面顺序读，不要跳过契约直接写 DTO。**
+
+1. [contracts/AGENT_CONTRACT.md](contracts/AGENT_CONTRACT.md)
+2. [contracts/openapi.yaml](contracts/openapi.yaml)（字段、类型、枚举、HTTP/`code` 真源）
+3. [docs/04-api-contract.md](docs/04-api-contract.md)（行为与状态机）
+4. 自己的子 TRD 与 [docs/17-weekly-board.md](docs/17-weekly-board.md) 本周格子
+5. README、docs/10-baseline-and-batches.md、docs/08-engineering-standards.md
+
+代码与现状如实报告，不把计划写成已上线能力。不要按人名建目录。只改自己 Owner 的路径。
 
 ## 所有权和调用
 

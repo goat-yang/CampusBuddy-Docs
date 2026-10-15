@@ -1,0 +1,12 @@
+{
+  "miniprogramRoot": "./",
+  "projectname": "campusbuddy",
+  "description": "CampusBuddy miniprogram skeleton",
+  "appid": "touristappid",
+  "compileType": "miniprogram",
+  "libVersion": "3.5.5",
+  "setting": {
+    "es6": true,
+    "minified": true
+  }
+}

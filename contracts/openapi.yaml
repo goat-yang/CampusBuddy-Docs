@@ -1,0 +1,2714 @@
+openapi: 3.0.3
+info:
+  title: CampusBuddy API
+  version: "1.0.0"
+  description: |
+    字段、类型、枚举、HTTP 与业务 `code` 的唯一真源。
+    行为与状态机见 docs/04-api-contract.md。Agent 规则见 contracts/AGENT_CONTRACT.md。
+    未实现业务前，本文件仍是客户端与服务端必须对齐的合同。
+    时间一律 `yyyy-MM-dd HH:mm:ss`（北京时间），禁止 ISO-8601。
+    请求 JSON 默认 additionalProperties=false。
+  x-owners:
+    A: auth, users.me, health, common envelope
+    B: activities, enrollments, files, favorites
+    C: reco, admin.reco.config
+    D: credit, notifications, reviews, reports, admin except reco config
+    E: miniprogram consumer
+    F: web portal and admin consumer
+servers:
+  - url: http://127.0.0.1:8080/api/v1
+    description: Local skeleton
+tags:
+  - name: health
+    x-owner: A
+  - name: auth
+    x-owner: A
+  - name: users
+    x-owner: A
+  - name: activities
+    x-owner: B
+  - name: enrollments
+    x-owner: B
+  - name: reco
+    x-owner: C
+  - name: credit
+    x-owner: D
+  - name: notifications
+    x-owner: D
+  - name: reviews
+    x-owner: D
+  - name: reports
+    x-owner: D
+  - name: admin
+    x-owner: D
+
+paths:
+  /health:
+    get:
+      tags: [health]
+      operationId: getHealth
+      x-owner: A
+      security: []
+      summary: Process liveness. Not a business capability.
+      responses:
+        "200":
+          description: Process up
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthEnvelope"
+
+  /auth/otp/send:
+    post:
+      tags: [auth]
+      operationId: sendOtp
+      x-owner: A
+      security: []
+      summary: Send SHU-email OTP. SMS channel is rejected in V1.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OtpSendRequest"
+            examples:
+              email:
+                $ref: "#/components/examples/OtpSendRequest"
+      responses:
+        "200":
+          description: OTP accepted for send
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OtpSendEnvelope"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+
+  /auth/login:
+    post:
+      tags: [auth]
+      operationId: login
+      x-owner: A
+      security: []
+      summary: Login. Never accept school SSO password.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Tokens issued
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenEnvelope"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /auth/refresh:
+    post:
+      tags: [auth]
+      operationId: refreshToken
+      x-owner: A
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshRequest"
+      responses:
+        "200":
+          description: New tokens
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenEnvelope"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /users/me:
+    get:
+      tags: [users]
+      operationId: getMe
+      x-owner: A
+      responses:
+        "200":
+          description: Current user profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MeEnvelope"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    put:
+      tags: [users]
+      operationId: updateMe
+      x-owner: A
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateMeRequest"
+      responses:
+        "200":
+          description: Updated profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MeEnvelope"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /users/me/interests:
+    get:
+      tags: [users]
+      operationId: getMyInterests
+      x-owner: A
+      responses:
+        "200":
+          description: Interest tags
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InterestsEnvelope"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    put:
+      tags: [users]
+      operationId: updateMyInterests
+      x-owner: A
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateInterestsRequest"
+      responses:
+        "200":
+          description: Updated interests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InterestsEnvelope"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /users/{id}/profile:
+    get:
+      tags: [users]
+      operationId: getPublicProfile
+      x-owner: A
+      parameters:
+        - $ref: "#/components/parameters/UserId"
+      responses:
+        "200":
+          description: Public profile. No campusId, email, phone.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicProfileEnvelope"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /activities:
+    get:
+      tags: [activities]
+      operationId: listActivities
+      x-owner: B
+      parameters:
+        - name: type
+          in: query
+          schema:
+            $ref: "#/components/schemas/ActivityType"
+        - name: tag
+          in: query
+          schema:
+            type: string
+        - name: campus
+          in: query
+          schema:
+            $ref: "#/components/schemas/Campus"
+        - name: keyword
+          in: query
+          schema:
+            type: string
+            maxLength: 40
+        - name: timeRange
+          in: query
+          schema:
+            $ref: "#/components/schemas/TimeRange"
+        - name: startFrom
+          in: query
+          description: Required when timeRange=custom
+          schema:
+            $ref: "#/components/schemas/DateTimeString"
+        - name: startTo
+          in: query
+          schema:
+            $ref: "#/components/schemas/DateTimeString"
+        - name: minCredit
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 100
+        - name: sort
+          in: query
+          schema:
+            $ref: "#/components/schemas/ActivitySort"
+        - $ref: "#/components/parameters/PageNum"
+        - $ref: "#/components/parameters/PageSize"
+      responses:
+        "200":
+          description: Public list. Only PUBLISHED or SIGNUP.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActivityCardPageEnvelope"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      tags: [activities]
+      operationId: createActivity
+      x-owner: B
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ActivityWriteRequest"
+            examples:
+              create:
+                $ref: "#/components/examples/ActivityCreateRequest"
+      responses:
+        "200":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActivityCreatedEnvelope"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+
+  /activities/hot:
+    get:
+      tags: [activities]
+      operationId: listHotActivities
+      x-owner: B
+      parameters:
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+      responses:
+        "200":
+          description: Hot list from Redis ZSet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActivityCardListEnvelope"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /activities/{id}:
+    get:
+      tags: [activities]
+      operationId: getActivity
+      x-owner: B
+      parameters:
+        - $ref: "#/components/parameters/ActivityId"
+      responses:
+        "200":
+          description: Detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActivityDetailEnvelope"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    put:
+      tags: [activities]
+      operationId: updateActivity
+      x-owner: B
+      parameters:
+        - $ref: "#/components/parameters/ActivityId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ActivityWriteRequest"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActivityDetailEnvelope"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+
+  /activities/{id}/offline:
+    patch:
+      tags: [activities]
+      operationId: offlineActivity
+      x-owner: B
+      parameters:
+        - $ref: "#/components/parameters/ActivityId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OfflineRequest"
+      responses:
+        "200":
+          description: Offlined
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActivityStatusEnvelope"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+
+  /activities/{id}/enroll:
+    post:
+      tags: [enrollments]
+      operationId: enrollActivity
+      x-owner: B
+      parameters:
+        - $ref: "#/components/parameters/ActivityId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EnrollRequest"
+      responses:
+        "200":
+          description: Enrolled or waitlisted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnrollEnvelope"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+    delete:
+      tags: [enrollments]
+      operationId: cancelEnroll
+      x-owner: B
+      parameters:
+        - $ref: "#/components/parameters/ActivityId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      responses:
+        "200":
+          description: Canceled. May promote waitlist.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CancelEnrollEnvelope"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+
+  /activities/{id}/enrollments:
+    get:
+      tags: [enrollments]
+      operationId: listEnrollments
+      x-owner: B
+      parameters:
+        - $ref: "#/components/parameters/ActivityId"
+        - $ref: "#/components/parameters/PageNum"
+        - $ref: "#/components/parameters/PageSize"
+      responses:
+        "200":
+          description: Publisher or admin only
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnrollmentPageEnvelope"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /enrollments/{id}/audit:
+    post:
+      tags: [enrollments]
+      operationId: auditEnrollment
+      x-owner: B
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EnrollmentAuditRequest"
+      responses:
+        "200":
+          description: Audited
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnrollmentEnvelope"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+
+  /activities/{id}/sign:
+    post:
+      tags: [enrollments]
+      operationId: signActivity
+      x-owner: B
+      parameters:
+        - $ref: "#/components/parameters/ActivityId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SignRequest"
+      responses:
+        "200":
+          description: Signed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SignEnvelope"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "409":
+          $ref: "#/components/responses/Conflict"
+
+  /activities/{id}/finish:
+    post:
+      tags: [enrollments]
+      operationId: finishActivity
+      x-owner: B
+      parameters:
+        - $ref: "#/components/parameters/ActivityId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FinishRequest"
+      responses:
+        "200":
+          description: Finished and credit settled by calling D
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FinishEnvelope"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "409":
+          $ref: "#/components/responses/Conflict"
+
+  /files/image:
+    post:
+      tags: [activities]
+      operationId: uploadImage
+      x-owner: B
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: jpg/png ≤ 2MB
+      responses:
+        "200":
+          description: Stored
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UploadEnvelope"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /users/me/activities:
+    get:
+      tags: [activities]
+      operationId: listMyActivities
+      x-owner: B
+      parameters:
+        - name: role
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [published, enrolled]
+        - $ref: "#/components/parameters/PageNum"
+        - $ref: "#/components/parameters/PageSize"
+      responses:
+        "200":
+          description: My published or enrolled cards
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActivityCardPageEnvelope"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /reco/for-you:
+    get:
+      tags: [reco]
+      operationId: recoForYou
+      x-owner: C
+      parameters:
+        - name: scene
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [home, search]
+        - name: campus
+          in: query
+          schema:
+            $ref: "#/components/schemas/Campus"
+        - $ref: "#/components/parameters/PageNum"
+        - $ref: "#/components/parameters/PageSize"
+      responses:
+        "200":
+          description: Ranked list. degraded=true is still success.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecoListEnvelope"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /reco/reasons/{activityId}:
+    get:
+      tags: [reco]
+      operationId: recoReasons
+      x-owner: C
+      parameters:
+        - $ref: "#/components/parameters/ActivityIdPath"
+      responses:
+        "200":
+          description: Explainable factors
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecoReasonEnvelope"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /reco/similar/{activityId}:
+    get:
+      tags: [reco]
+      operationId: recoSimilar
+      x-owner: C
+      parameters:
+        - $ref: "#/components/parameters/ActivityIdPath"
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+      responses:
+        "200":
+          description: Similar cards
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActivityCardListEnvelope"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /reco/candidates/{activityId}:
+    get:
+      tags: [reco]
+      operationId: recoCandidates
+      x-owner: C
+      parameters:
+        - $ref: "#/components/parameters/ActivityIdPath"
+      responses:
+        "200":
+          description: P2 publisher candidates
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserBriefListEnvelope"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /reco/invite:
+    post:
+      tags: [reco]
+      operationId: recoInvite
+      x-owner: C
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RecoInviteRequest"
+      responses:
+        "200":
+          description: P2 invites sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SentEnvelope"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /reco/event:
+    post:
+      tags: [reco]
+      operationId: recoEvent
+      x-owner: C
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RecoEventRequest"
+      responses:
+        "200":
+          description: Tracked
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OkEnvelope"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /reco/refresh:
+    post:
+      tags: [reco]
+      operationId: recoRefresh
+      x-owner: C
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      responses:
+        "200":
+          description: User cache cleared
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OkEnvelope"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /users/me/credit/logs:
+    get:
+      tags: [credit]
+      operationId: listMyCreditLogs
+      x-owner: D
+      parameters:
+        - $ref: "#/components/parameters/PageNum"
+        - $ref: "#/components/parameters/PageSize"
+      responses:
+        "200":
+          description: Ledger only, never a direct score update view
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreditLogPageEnvelope"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /credit/rule:
+    get:
+      tags: [credit]
+      operationId: getCreditRule
+      x-owner: D
+      responses:
+        "200":
+          description: Public rule numbers
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreditRuleEnvelope"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /notifications:
+    get:
+      tags: [notifications]
+      operationId: listNotifications
+      x-owner: D
+      parameters:
+        - $ref: "#/components/parameters/PageNum"
+        - $ref: "#/components/parameters/PageSize"
+      responses:
+        "200":
+          description: Inbox plus unreadCount
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationPageEnvelope"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /notifications/{id}/read:
+    patch:
+      tags: [notifications]
+      operationId: readNotification
+      x-owner: D
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - $ref: "#/components/parameters/IdempotencyKey"
+      responses:
+        "200":
+          description: Marked read
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReadFlagEnvelope"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /notifications/subscribe:
+    post:
+      tags: [notifications]
+      operationId: subscribeNotifications
+      x-owner: D
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubscribeRequest"
+      responses:
+        "200":
+          description: Mini program template ids stored
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OkEnvelope"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  /favorites/{id}:
+    post:
+      tags: [activities]
+      operationId: favoriteActivity
+      x-owner: B
+      parameters:
+        - $ref: "#/components/parameters/ActivityId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      responses:
+        "200":
+          description: Favorited
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FavoritedEnvelope"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /favorites:
+    get:
+      tags: [activities]
+      operationId: listFavorites
+      x-owner: B
+      parameters:
+        - $ref: "#/components/parameters/PageNum"
+        - $ref: "#/components/parameters/PageSize"
+      responses:
+        "200":
+          description: Favorite cards
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActivityCardPageEnvelope"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /reviews:
+    post:
+      tags: [reviews]
+      operationId: createReview
+      x-owner: D
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReviewCreateRequest"
+      responses:
+        "200":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OkEnvelope"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "409":
+          $ref: "#/components/responses/Conflict"
+
+  /activities/{id}/reviews:
+    get:
+      tags: [reviews]
+      operationId: listActivityReviews
+      x-owner: D
+      parameters:
+        - $ref: "#/components/parameters/ActivityId"
+        - $ref: "#/components/parameters/PageNum"
+        - $ref: "#/components/parameters/PageSize"
+      responses:
+        "200":
+          description: Reviews
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReviewPageEnvelope"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /reports:
+    post:
+      tags: [reports]
+      operationId: createReport
+      x-owner: D
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReportCreateRequest"
+      responses:
+        "200":
+          description: Ticket created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReportEnvelope"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  /reports/{id}:
+    get:
+      tags: [reports]
+      operationId: getMyReport
+      x-owner: D
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: Reporter sees own ticket
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReportEnvelope"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /admin/activities/pending:
+    get:
+      tags: [admin]
+      operationId: adminPendingActivities
+      x-owner: D
+      parameters:
+        - $ref: "#/components/parameters/PageNum"
+        - $ref: "#/components/parameters/PageSize"
+      responses:
+        "200":
+          description: ADMIN only
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActivityDetailPageEnvelope"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /admin/activities/{id}/audit:
+    post:
+      tags: [admin]
+      operationId: adminAuditActivity
+      x-owner: D
+      parameters:
+        - $ref: "#/components/parameters/ActivityId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminActivityAuditRequest"
+      responses:
+        "200":
+          description: Audited
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActivityStatusEnvelope"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "409":
+          $ref: "#/components/responses/Conflict"
+
+  /admin/users:
+    get:
+      tags: [admin]
+      operationId: adminListUsers
+      x-owner: D
+      parameters:
+        - name: nickname
+          in: query
+          schema:
+            type: string
+        - name: college
+          in: query
+          schema:
+            type: string
+        - name: creditMin
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 100
+        - name: creditMax
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 100
+        - $ref: "#/components/parameters/PageNum"
+        - $ref: "#/components/parameters/PageSize"
+      responses:
+        "200":
+          description: ADMIN user list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUserPageEnvelope"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /admin/users/{id}/status:
+    patch:
+      tags: [admin]
+      operationId: adminPatchUserStatus
+      x-owner: D
+      parameters:
+        - $ref: "#/components/parameters/UserId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminUserStatusRequest"
+      responses:
+        "200":
+          description: Status changed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OkEnvelope"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /admin/users/{id}/credit:
+    patch:
+      tags: [admin]
+      operationId: adminPatchUserCredit
+      x-owner: D
+      parameters:
+        - $ref: "#/components/parameters/UserId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminCreditDeltaRequest"
+      responses:
+        "200":
+          description: Ledger appended
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OkEnvelope"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /admin/reports:
+    get:
+      tags: [admin]
+      operationId: adminListReports
+      x-owner: D
+      parameters:
+        - $ref: "#/components/parameters/PageNum"
+        - $ref: "#/components/parameters/PageSize"
+      responses:
+        "200":
+          description: Tickets
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminReportPageEnvelope"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /admin/reports/{id}:
+    patch:
+      tags: [admin]
+      operationId: adminPatchReport
+      x-owner: D
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminReportActionRequest"
+      responses:
+        "200":
+          description: Handled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OkEnvelope"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /admin/reco/config:
+    get:
+      tags: [admin]
+      operationId: adminGetRecoConfig
+      x-owner: C
+      responses:
+        "200":
+          description: Implemented by C, exposed under /admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecoConfigEnvelope"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    put:
+      tags: [admin]
+      operationId: adminPutRecoConfig
+      x-owner: C
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RecoConfig"
+      responses:
+        "200":
+          description: Weights must sum to 1.00
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecoConfigEnvelope"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /admin/stats/overview:
+    get:
+      tags: [admin]
+      operationId: adminStatsOverview
+      x-owner: D
+      responses:
+        "200":
+          description: Dashboard numbers. Frontend must not sum itself.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatsOverviewEnvelope"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /admin/stats/activity-type:
+    get:
+      tags: [admin]
+      operationId: adminStatsActivityType
+      x-owner: D
+      responses:
+        "200":
+          description: Per type
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatsTypeEnvelope"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /admin/stats/credit-distribution:
+    get:
+      tags: [admin]
+      operationId: adminStatsCredit
+      x-owner: D
+      responses:
+        "200":
+          description: Four buckets
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreditDistEnvelope"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /admin/logs:
+    get:
+      tags: [admin]
+      operationId: adminLogs
+      x-owner: D
+      parameters:
+        - $ref: "#/components/parameters/PageNum"
+        - $ref: "#/components/parameters/PageSize"
+      responses:
+        "200":
+          description: Admin audit log
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminLogPageEnvelope"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      schema:
+        type: string
+        format: uuid
+    PageNum:
+      name: pageNum
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    PageSize:
+      name: pageSize
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 50
+        default: 10
+    UserId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+    ActivityId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+    ActivityIdPath:
+      name: activityId
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+  responses:
+    BadRequest:
+      description: "code=40001"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+          example:
+            code: 40001
+            message: "email 必须是学校邮箱域"
+            data:
+              field: email
+              retryable: false
+            requestId: "22222222-2222-4222-8222-222222222222"
+    Unauthorized:
+      description: "code=40100"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+          example:
+            code: 40100
+            message: 未登录或令牌已过期
+            data:
+              retryable: false
+            requestId: "33333333-3333-4333-8333-333333333333"
+    Forbidden:
+      description: "code=40300"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+          example:
+            code: 40300
+            message: 未绑定学号，无法报名或发布
+            data:
+              retryable: false
+            requestId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"
+    NotFound:
+      description: "code=40400 对象不存在或不属于当前用户"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+          example:
+            code: 40400
+            message: 资源不存在
+            data: null
+            requestId: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"
+    Conflict:
+      description: "40901 status; 40902 duplicate enroll; 40903 full; 40904 time clash; 40905 idempotency mismatch"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+          examples:
+            full:
+              value:
+                code: 40903
+                message: 活动已满员
+                data:
+                  field: remainCount
+                  retryable: false
+                requestId: "44444444-4444-4444-8444-444444444444"
+            clash:
+              value:
+                code: 40904
+                message: "时间冲突：今晚宝山操场跑步 2026-10-20 19:30:00"
+                data:
+                  field: startTime
+                  retryable: false
+                requestId: "cccccccc-cccc-4ccc-8ccc-cccccccccccc"
+    RateLimited:
+      description: "code=42900"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+          example:
+            code: 42900
+            message: 验证码发送过于频繁，请 60 秒后重试
+            data:
+              field: otp
+              retryable: true
+              retryAfterSec: 60
+            requestId: "55555555-5555-4555-8555-555555555555"
+  examples:
+    OtpSendRequest:
+      value:
+        channel: EMAIL
+        campusId: "24123456"
+        email: 24123456@shu.edu.cn
+    ActivityCreateRequest:
+      value:
+        title: 今晚宝山操场跑步
+        type: SPORT
+        tagIds: [1, 2]
+        description: 轻松慢跑 5 公里
+        campus: BAOSHAN
+        place: 操场
+        placeNote: 西门集合
+        startTime: "2026-10-20 19:30:00"
+        endTime: "2026-10-20 21:00:00"
+        enrollDeadline: "2026-10-20 19:00:00"
+        minNum: 3
+        maxNum: 8
+        imageUrls: []
+        status: PENDING
+  schemas:
+    DateTimeString:
+      type: string
+      pattern: "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$"
+      example: "2026-10-20 19:30:00"
+      description: Beijing time. Not ISO-8601.
+    ActivityType:
+      type: string
+      enum: [MEAL, SPORT, STUDY, TRIP, CONTEST, FUN, OTHER]
+    Campus:
+      type: string
+      enum: [BAOSHAN, YANCHANG, JIADING, OTHER]
+    CreditLevel:
+      type: string
+      enum: [EXCELLENT, GOOD, NORMAL, RESTRICTED]
+    ActivityStatus:
+      type: string
+      enum: [DRAFT, PENDING, REJECTED, PUBLISHED, SIGNUP, GROUPED, ONGOING, FINISHED, OFFLINE]
+    EnrollmentStatus:
+      type: string
+      enum: [APPLYING, APPROVED, WAITLIST, REJECTED, CANCELED, NOSHOW, DONE]
+    TimeRange:
+      type: string
+      enum: [tonight, tomorrow, week, custom]
+    ActivitySort:
+      type: string
+      enum: [time, hot, credit, distance]
+    ErrorData:
+      type: object
+      additionalProperties: false
+      properties:
+        field:
+          type: string
+        retryable:
+          type: boolean
+        retryAfterSec:
+          type: integer
+          minimum: 1
+    ErrorEnvelope:
+      type: object
+      additionalProperties: false
+      required: [code, message, data, requestId]
+      properties:
+        code:
+          type: integer
+          enum: [40001, 40100, 40300, 40400, 40901, 40902, 40903, 40904, 40905, 42900, 50000]
+        message:
+          type: string
+        data:
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/ErrorData"
+        requestId:
+          type: string
+          format: uuid
+    UserBrief:
+      type: object
+      additionalProperties: false
+      required: [id, nickname, avatar, creditScore, creditLevel, college]
+      properties:
+        id:
+          type: integer
+          format: int64
+        nickname:
+          type: string
+        avatar:
+          nullable: true
+          type: string
+        creditScore:
+          type: integer
+          minimum: 0
+          maximum: 100
+        creditLevel:
+          $ref: "#/components/schemas/CreditLevel"
+        college:
+          nullable: true
+          type: string
+    ActivityCard:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - title
+        - type
+        - tags
+        - campus
+        - place
+        - startTime
+        - endTime
+        - enrollDeadline
+        - minNum
+        - maxNum
+        - enrollNum
+        - remainCount
+        - status
+        - cover
+        - publisher
+        - reason
+      properties:
+        id:
+          type: integer
+          format: int64
+        title:
+          type: string
+        type:
+          $ref: "#/components/schemas/ActivityType"
+        tags:
+          type: array
+          items:
+            type: string
+        campus:
+          $ref: "#/components/schemas/Campus"
+        place:
+          type: string
+        startTime:
+          $ref: "#/components/schemas/DateTimeString"
+        endTime:
+          $ref: "#/components/schemas/DateTimeString"
+        enrollDeadline:
+          $ref: "#/components/schemas/DateTimeString"
+        minNum:
+          type: integer
+        maxNum:
+          type: integer
+        enrollNum:
+          type: integer
+        remainCount:
+          type: integer
+        status:
+          $ref: "#/components/schemas/ActivityStatus"
+        cover:
+          nullable: true
+          type: string
+        publisher:
+          $ref: "#/components/schemas/UserBrief"
+        reason:
+          nullable: true
+          type: string
+          description: Non-null only on reco endpoints. List endpoints must send null.
+    ActivityDetail:
+      allOf:
+        - $ref: "#/components/schemas/ActivityCard"
+        - type: object
+          additionalProperties: false
+          required: [description, images, publisherProfile, myEnrollmentStatus, waitNum]
+          properties:
+            description:
+              type: string
+            images:
+              type: array
+              items:
+                type: string
+            publisherProfile:
+              $ref: "#/components/schemas/UserBrief"
+            myEnrollmentStatus:
+              nullable: true
+              $ref: "#/components/schemas/EnrollmentStatus"
+            waitNum:
+              type: integer
+    Enrollment:
+      type: object
+      additionalProperties: false
+      required: [id, activityId, user, status, applyMsg, signupTime]
+      properties:
+        id:
+          type: integer
+          format: int64
+        activityId:
+          type: integer
+          format: int64
+        user:
+          $ref: "#/components/schemas/UserBrief"
+        status:
+          $ref: "#/components/schemas/EnrollmentStatus"
+        applyMsg:
+          nullable: true
+          type: string
+        signupTime:
+          $ref: "#/components/schemas/DateTimeString"
+    HealthData:
+      type: object
+      additionalProperties: false
+      required: [status, service]
+      properties:
+        status:
+          type: string
+          enum: [UP]
+        service:
+          type: string
+          enum: [campusbuddy]
+    OtpSendRequest:
+      type: object
+      additionalProperties: false
+      required: [channel, campusId, email]
+      properties:
+        channel:
+          type: string
+          enum: [EMAIL, SMS]
+          description: V1 must reject SMS with 40001
+        campusId:
+          type: string
+          pattern: "^[A-Za-z0-9]{5,20}$"
+        email:
+          type: string
+          format: email
+    LoginRequest:
+      type: object
+      additionalProperties: false
+      required: [mode]
+      description: |
+        CAMPUS_PASSWORD requires campusId+password (platform password only).
+        CAMPUS_OTP requires campusId+email+otp; password required if the campusId has no platform password yet.
+        WECHAT requires code; unbound campusId may browse but enroll/publish returns 40300.
+        SHU_OAUTH is not a valid mode in V1.
+      properties:
+        mode:
+          type: string
+          enum: [CAMPUS_PASSWORD, CAMPUS_OTP, WECHAT]
+        campusId:
+          type: string
+        password:
+          type: string
+          description: Platform password only. Never school SSO password.
+        email:
+          type: string
+          format: email
+        otp:
+          type: string
+          pattern: "^\\d{6}$"
+        code:
+          type: string
+          description: WeChat login code when mode=WECHAT
+    RefreshRequest:
+      type: object
+      additionalProperties: false
+      required: [refreshToken]
+      properties:
+        refreshToken:
+          type: string
+    TokenData:
+      type: object
+      additionalProperties: false
+      required: [accessToken, refreshToken, expiresIn, user]
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+        expiresIn:
+          type: integer
+          maximum: 7200
+        user:
+          $ref: "#/components/schemas/UserBrief"
+    Me:
+      allOf:
+        - $ref: "#/components/schemas/UserBrief"
+        - type: object
+          additionalProperties: false
+          required: [campusIdMasked, grade, major, campus, bio, emailMasked]
+          properties:
+            campusIdMasked:
+              type: string
+              example: "2412****"
+            grade:
+              nullable: true
+              type: string
+            major:
+              nullable: true
+              type: string
+            campus:
+              nullable: true
+              $ref: "#/components/schemas/Campus"
+            bio:
+              nullable: true
+              type: string
+            emailMasked:
+              type: string
+              example: "2412****@shu.edu.cn"
+    UpdateMeRequest:
+      type: object
+      additionalProperties: false
+      required: [nickname, avatar, college, grade, major, campus, bio]
+      properties:
+        nickname:
+          type: string
+          minLength: 1
+          maxLength: 20
+        avatar:
+          nullable: true
+          type: string
+        college:
+          nullable: true
+          type: string
+        grade:
+          nullable: true
+          type: string
+        major:
+          nullable: true
+          type: string
+        campus:
+          nullable: true
+          $ref: "#/components/schemas/Campus"
+        bio:
+          nullable: true
+          type: string
+          maxLength: 200
+    Tag:
+      type: object
+      additionalProperties: false
+      required: [id, name, category]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        category:
+          type: string
+    Interests:
+      type: object
+      additionalProperties: false
+      required: [tagIds, tags]
+      properties:
+        tagIds:
+          type: array
+          minItems: 3
+          maxItems: 10
+          items:
+            type: integer
+        tags:
+          type: array
+          items:
+            $ref: "#/components/schemas/Tag"
+    UpdateInterestsRequest:
+      type: object
+      additionalProperties: false
+      required: [tagIds]
+      properties:
+        tagIds:
+          type: array
+          minItems: 3
+          maxItems: 10
+          items:
+            type: integer
+    PublicProfile:
+      allOf:
+        - $ref: "#/components/schemas/UserBrief"
+        - type: object
+          additionalProperties: false
+          required: [historyCount, reviewSummary]
+          properties:
+            historyCount:
+              type: integer
+            reviewSummary:
+              type: object
+              additionalProperties: false
+              required: [avgScore, count]
+              properties:
+                avgScore:
+                  type: number
+                  format: float
+                count:
+                  type: integer
+    ActivityWriteRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - title
+        - type
+        - tagIds
+        - description
+        - campus
+        - place
+        - startTime
+        - endTime
+        - enrollDeadline
+        - minNum
+        - maxNum
+        - imageUrls
+        - status
+      properties:
+        title:
+          type: string
+          minLength: 2
+          maxLength: 40
+        type:
+          $ref: "#/components/schemas/ActivityType"
+        tagIds:
+          type: array
+          minItems: 1
+          maxItems: 5
+          items:
+            type: integer
+        description:
+          type: string
+          maxLength: 2000
+        campus:
+          $ref: "#/components/schemas/Campus"
+        place:
+          type: string
+          maxLength: 40
+        placeNote:
+          type: string
+          maxLength: 80
+        startTime:
+          $ref: "#/components/schemas/DateTimeString"
+        endTime:
+          $ref: "#/components/schemas/DateTimeString"
+        enrollDeadline:
+          $ref: "#/components/schemas/DateTimeString"
+        minNum:
+          type: integer
+          minimum: 2
+        maxNum:
+          type: integer
+          minimum: 2
+          maximum: 20
+        imageUrls:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+          enum: [DRAFT, PENDING]
+    OfflineRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        reason:
+          type: string
+          maxLength: 200
+    EnrollRequest:
+      type: object
+      additionalProperties: false
+      required: [applyMsg]
+      properties:
+        applyMsg:
+          type: string
+          maxLength: 200
+    EnrollmentAuditRequest:
+      type: object
+      additionalProperties: false
+      required: [action]
+      properties:
+        action:
+          type: string
+          enum: [APPROVE, REJECT, REMOVE]
+        reason:
+          type: string
+          maxLength: 200
+    SignRequest:
+      type: object
+      additionalProperties: false
+      required: [token]
+      properties:
+        token:
+          type: string
+    FinishRequest:
+      type: object
+      additionalProperties: false
+      required: [presentUserIds]
+      properties:
+        presentUserIds:
+          type: array
+          items:
+            type: integer
+            format: int64
+    RecoInviteRequest:
+      type: object
+      additionalProperties: false
+      required: [activityId, userIds]
+      properties:
+        activityId:
+          type: integer
+          format: int64
+        userIds:
+          type: array
+          minItems: 1
+          items:
+            type: integer
+            format: int64
+    RecoEventRequest:
+      type: object
+      additionalProperties: false
+      required: [batchId, activityId, eventType, position, scene]
+      properties:
+        batchId:
+          type: string
+        activityId:
+          type: integer
+          format: int64
+        eventType:
+          type: string
+          enum: [EXPOSE, CLICK, SIGNUP, IGNORE, DISLIKE]
+        position:
+          type: integer
+          minimum: 0
+        scene:
+          type: string
+          enum: [home, search]
+    RecoFactors:
+      type: object
+      additionalProperties: false
+      required: [tag, time, geo, credit, hot, cf]
+      properties:
+        tag:
+          type: number
+        time:
+          type: number
+        geo:
+          type: number
+        credit:
+          type: number
+        hot:
+          type: number
+        cf:
+          type: number
+    RecoConfig:
+      type: object
+      additionalProperties: false
+      required: [weights, recallSize, cacheTtlSec]
+      properties:
+        weights:
+          $ref: "#/components/schemas/RecoFactors"
+        recallSize:
+          type: integer
+          minimum: 10
+          maximum: 500
+        cacheTtlSec:
+          type: integer
+          minimum: 30
+          maximum: 3600
+    SubscribeRequest:
+      type: object
+      additionalProperties: false
+      required: [templateIds]
+      properties:
+        templateIds:
+          type: array
+          items:
+            type: string
+    ReviewCreateRequest:
+      type: object
+      additionalProperties: false
+      required: [activityId, score, content, tags]
+      properties:
+        activityId:
+          type: integer
+          format: int64
+        toUserId:
+          type: integer
+          format: int64
+        score:
+          type: integer
+          minimum: 1
+          maximum: 5
+        content:
+          type: string
+          maxLength: 500
+        tags:
+          type: array
+          items:
+            type: string
+    ReportCreateRequest:
+      type: object
+      additionalProperties: false
+      required: [targetType, targetId, reasonType, content, evidenceUrls]
+      properties:
+        targetType:
+          type: string
+          enum: [ACTIVITY, USER]
+        targetId:
+          type: integer
+          format: int64
+        reasonType:
+          type: string
+          enum: [AD, HARASS, FAKE, DISCRIMINATION, OTHER]
+        content:
+          type: string
+          maxLength: 500
+        evidenceUrls:
+          type: array
+          items:
+            type: string
+    AdminActivityAuditRequest:
+      type: object
+      additionalProperties: false
+      required: [action]
+      properties:
+        action:
+          type: string
+          enum: [PASS, REJECT]
+        reason:
+          type: string
+    AdminUserStatusRequest:
+      type: object
+      additionalProperties: false
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [NORMAL, BANNED_PUBLISH, BANNED_ENROLL, BANNED_ALL]
+    AdminCreditDeltaRequest:
+      type: object
+      additionalProperties: false
+      required: [delta, reason]
+      properties:
+        delta:
+          type: integer
+        reason:
+          type: string
+          minLength: 2
+    AdminReportActionRequest:
+      type: object
+      additionalProperties: false
+      required: [action, result]
+      properties:
+        action:
+          type: string
+          enum: [CONFIRM, DENY]
+        result:
+          type: string
+    EnvelopeBase:
+      type: object
+      required: [code, message, data, requestId]
+      properties:
+        code:
+          type: integer
+          enum: [0]
+        message:
+          type: string
+          enum: [ok]
+        requestId:
+          type: string
+          format: uuid
+    HealthEnvelope:
+      allOf:
+        - $ref: "#/components/schemas/EnvelopeBase"
+        - type: object
+          properties:
+            data:
+              $ref: "#/components/schemas/HealthData"
+    OtpSendEnvelope:
+      allOf:
+        - $ref: "#/components/schemas/EnvelopeBase"
+        - type: object
+          properties:
+            data:
+              type: object
+              additionalProperties: false
+              required: [ttlSec]
+              properties:
+                ttlSec:
+                  type: integer
+                  enum: [300]
+    TokenEnvelope:
+      allOf:
+        - $ref: "#/components/schemas/EnvelopeBase"
+        - type: object
+          properties:
+            data:
+              $ref: "#/components/schemas/TokenData"
+    MeEnvelope:
+      allOf:
+        - $ref: "#/components/schemas/EnvelopeBase"
+        - type: object
+          properties:
+            data:
+              $ref: "#/components/schemas/Me"
+    InterestsEnvelope:
+      allOf:
+        - $ref: "#/components/schemas/EnvelopeBase"
+        - type: object
+          properties:
+            data:
+              $ref: "#/components/schemas/Interests"
+    PublicProfileEnvelope:
+      allOf:
+        - $ref: "#/components/schemas/EnvelopeBase"
+        - type: object
+          properties:
+            data:
+              $ref: "#/components/schemas/PublicProfile"
+    ActivityCardPageEnvelope:
+      allOf:
+        - $ref: "#/components/schemas/EnvelopeBase"
+        - type: object
+          properties:
+            data:
+              type: object
+              additionalProperties: false
+              required: [total, list]
+              properties:
+                total:
+                  type: integer
+                list:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/ActivityCard"
+    ActivityCardListEnvelope:
+      allOf:
+        - $ref: "#/components/schemas/EnvelopeBase"
+        - type: object
+          properties:
+            data:
+              type: object
+              additionalProperties: false
+              required: [list]
+              properties:
+                list:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/ActivityCard"
+    ActivityDetailEnvelope:
+      allOf:
+        - $ref: "#/components/schemas/EnvelopeBase"
+        - type: object
+          properties:
+            data:
+              $ref: "#/components/schemas/ActivityDetail"
+    ActivityDetailPageEnvelope:
+      allOf:
+        - $ref: "#/components/schemas/EnvelopeBase"
+        - type: object
+          properties:
+            data:
+              type: object
+              additionalProperties: false
+              required: [total, list]
+              properties:
+                total:
+                  type: integer
+                list:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/ActivityDetail"
+    ActivityCreatedEnvelope:
+      allOf:
+        - $ref: "#/components/schemas/EnvelopeBase"
+        - type: object
+          properties:
+            data:
+              type: object
+              additionalProperties: false
+              required: [id, status]
+              properties:
+                id:
+                  type: integer
+                  format: int64
+                status:
+                  $ref: "#/components/schemas/ActivityStatus"
+    ActivityStatusEnvelope:
+      allOf:
+        - $ref: "#/components/schemas/EnvelopeBase"
+        - type: object
+          properties:
+            data:
+              type: object
+              additionalProperties: false
+              required: [id, status]
+              properties:
+                id:
+                  type: integer
+                  format: int64
+                status:
+                  $ref: "#/components/schemas/ActivityStatus"
+    EnrollEnvelope:
+      allOf:
+        - $ref: "#/components/schemas/EnvelopeBase"
+        - type: object
+          properties:
+            data:
+              type: object
+              additionalProperties: false
+              required: [enrollmentId, status, remainCount]
+              properties:
+                enrollmentId:
+                  type: integer
+                  format: int64
+                status:
+                  $ref: "#/components/schemas/EnrollmentStatus"
+                remainCount:
+                  type: integer
+    CancelEnrollEnvelope:
+      allOf:
+        - $ref: "#/components/schemas/EnvelopeBase"
+        - type: object
+          properties:
+            data:
+              type: object
+              additionalProperties: false
+              required: [remainCount]
+              properties:
+                remainCount:
+                  type: integer
+                promotedUserId:
+                  type: integer
+                  format: int64
+    EnrollmentEnvelope:
+      allOf:
+        - $ref: "#/components/schemas/EnvelopeBase"
+        - type: object
+          properties:
+            data:
+              $ref: "#/components/schemas/Enrollment"
+    EnrollmentPageEnvelope:
+      allOf:
+        - $ref: "#/components/schemas/EnvelopeBase"
+        - type: object
+          properties:
+            data:
+              type: object
+              additionalProperties: false
+              required: [total, list]
+              properties:
+                total:
+                  type: integer
+                list:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/Enrollment"
+    SignEnvelope:
+      allOf:
+        - $ref: "#/components/schemas/EnvelopeBase"
+        - type: object
+          properties:
+            data:
+              type: object
+              additionalProperties: false
+              required: [signed]
+              properties:
+                signed:
+                  type: boolean
+                  enum: [true]
+    FinishEnvelope:
+      allOf:
+        - $ref: "#/components/schemas/EnvelopeBase"
+        - type: object
+          properties:
+            data:
+              type: object
+              additionalProperties: false
+              required: [creditSettled]
+              properties:
+                creditSettled:
+                  type: boolean
+                  enum: [true]
+    UploadEnvelope:
+      allOf:
+        - $ref: "#/components/schemas/EnvelopeBase"
+        - type: object
+          properties:
+            data:
+              type: object
+              additionalProperties: false
+              required: [url]
+              properties:
+                url:
+                  type: string
+    RecoListEnvelope:
+      allOf:
+        - $ref: "#/components/schemas/EnvelopeBase"
+        - type: object
+          properties:
+            data:
+              type: object
+              additionalProperties: false
+              required: [batchId, degraded, list]
+              properties:
+                batchId:
+                  type: string
+                degraded:
+                  type: boolean
+                list:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/ActivityCard"
+    RecoReasonEnvelope:
+      allOf:
+        - $ref: "#/components/schemas/EnvelopeBase"
+        - type: object
+          properties:
+            data:
+              type: object
+              additionalProperties: false
+              required: [reason, factors]
+              properties:
+                reason:
+                  type: string
+                factors:
+                  $ref: "#/components/schemas/RecoFactors"
+    UserBriefListEnvelope:
+      allOf:
+        - $ref: "#/components/schemas/EnvelopeBase"
+        - type: object
+          properties:
+            data:
+              type: object
+              additionalProperties: false
+              required: [list]
+              properties:
+                list:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/UserBrief"
+    SentEnvelope:
+      allOf:
+        - $ref: "#/components/schemas/EnvelopeBase"
+        - type: object
+          properties:
+            data:
+              type: object
+              additionalProperties: false
+              required: [sent]
+              properties:
+                sent:
+                  type: integer
+    OkEnvelope:
+      allOf:
+        - $ref: "#/components/schemas/EnvelopeBase"
+        - type: object
+          properties:
+            data:
+              type: object
+              additionalProperties: false
+              required: [ok]
+              properties:
+                ok:
+                  type: boolean
+                  enum: [true]
+    CreditLog:
+      type: object
+      additionalProperties: false
+      required: [id, changeScore, beforeScore, afterScore, reason, bizType, createTime]
+      properties:
+        id:
+          type: integer
+          format: int64
+        changeScore:
+          type: integer
+        beforeScore:
+          type: integer
+        afterScore:
+          type: integer
+        reason:
+          type: string
+        bizType:
+          type: string
+        createTime:
+          $ref: "#/components/schemas/DateTimeString"
+    CreditLogPageEnvelope:
+      allOf:
+        - $ref: "#/components/schemas/EnvelopeBase"
+        - type: object
+          properties:
+            data:
+              type: object
+              additionalProperties: false
+              required: [total, list]
+              properties:
+                total:
+                  type: integer
+                list:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/CreditLog"
+    CreditRuleEnvelope:
+      allOf:
+        - $ref: "#/components/schemas/EnvelopeBase"
+        - type: object
+          properties:
+            data:
+              type: object
+              additionalProperties: false
+              required: [init, complete, lateCancel, noshow, banPublishBelow, banEnrollBelow]
+              properties:
+                init:
+                  type: integer
+                  enum: [100]
+                complete:
+                  type: integer
+                  enum: [2]
+                lateCancel:
+                  type: integer
+                  enum: [-5]
+                noshow:
+                  type: integer
+                  enum: [-10]
+                banPublishBelow:
+                  type: integer
+                  enum: [60]
+                banEnrollBelow:
+                  type: integer
+                  enum: [40]
+    Notification:
+      type: object
+      additionalProperties: false
+      required: [id, type, title, content, bizId, readFlag, createTime]
+      properties:
+        id:
+          type: integer
+          format: int64
+        type:
+          type: string
+        title:
+          type: string
+        content:
+          type: string
+        bizId:
+          nullable: true
+          type: integer
+          format: int64
+        readFlag:
+          type: boolean
+        createTime:
+          $ref: "#/components/schemas/DateTimeString"
+    NotificationPageEnvelope:
+      allOf:
+        - $ref: "#/components/schemas/EnvelopeBase"
+        - type: object
+          properties:
+            data:
+              type: object
+              additionalProperties: false
+              required: [total, unreadCount, list]
+              properties:
+                total:
+                  type: integer
+                unreadCount:
+                  type: integer
+                list:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/Notification"
+    ReadFlagEnvelope:
+      allOf:
+        - $ref: "#/components/schemas/EnvelopeBase"
+        - type: object
+          properties:
+            data:
+              type: object
+              additionalProperties: false
+              required: [readFlag]
+              properties:
+                readFlag:
+                  type: boolean
+                  enum: [true]
+    FavoritedEnvelope:
+      allOf:
+        - $ref: "#/components/schemas/EnvelopeBase"
+        - type: object
+          properties:
+            data:
+              type: object
+              additionalProperties: false
+              required: [favorited]
+              properties:
+                favorited:
+                  type: boolean
+                  enum: [true]
+    ReviewItem:
+      type: object
+      additionalProperties: false
+      required: [fromUser, score, content, createTime]
+      properties:
+        fromUser:
+          $ref: "#/components/schemas/UserBrief"
+        score:
+          type: integer
+        content:
+          type: string
+        createTime:
+          $ref: "#/components/schemas/DateTimeString"
+    ReviewPageEnvelope:
+      allOf:
+        - $ref: "#/components/schemas/EnvelopeBase"
+        - type: object
+          properties:
+            data:
+              type: object
+              additionalProperties: false
+              required: [total, list]
+              properties:
+                total:
+                  type: integer
+                list:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/ReviewItem"
+    Report:
+      type: object
+      additionalProperties: false
+      required: [id, targetType, targetId, reasonType, status, createTime]
+      properties:
+        id:
+          type: integer
+          format: int64
+        targetType:
+          type: string
+          enum: [ACTIVITY, USER]
+        targetId:
+          type: integer
+          format: int64
+        reasonType:
+          type: string
+        status:
+          type: string
+        result:
+          nullable: true
+          type: string
+        createTime:
+          $ref: "#/components/schemas/DateTimeString"
+    ReportEnvelope:
+      allOf:
+        - $ref: "#/components/schemas/EnvelopeBase"
+        - type: object
+          properties:
+            data:
+              $ref: "#/components/schemas/Report"
+    AdminUserPageEnvelope:
+      allOf:
+        - $ref: "#/components/schemas/EnvelopeBase"
+        - type: object
+          properties:
+            data:
+              type: object
+              additionalProperties: false
+              required: [total, list]
+              properties:
+                total:
+                  type: integer
+                list:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/Me"
+    AdminReportPageEnvelope:
+      allOf:
+        - $ref: "#/components/schemas/EnvelopeBase"
+        - type: object
+          properties:
+            data:
+              type: object
+              additionalProperties: false
+              required: [total, list]
+              properties:
+                total:
+                  type: integer
+                list:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/Report"
+    RecoConfigEnvelope:
+      allOf:
+        - $ref: "#/components/schemas/EnvelopeBase"
+        - type: object
+          properties:
+            data:
+              $ref: "#/components/schemas/RecoConfig"
+    StatsOverviewEnvelope:
+      allOf:
+        - $ref: "#/components/schemas/EnvelopeBase"
+        - type: object
+          properties:
+            data:
+              type: object
+              additionalProperties: false
+              required: [users, dau, todayActivities, todayEnrolls, groupRate, recoCvr]
+              properties:
+                users:
+                  type: integer
+                dau:
+                  type: integer
+                todayActivities:
+                  type: integer
+                todayEnrolls:
+                  type: integer
+                groupRate:
+                  type: number
+                recoCvr:
+                  type: number
+    StatsTypeEnvelope:
+      allOf:
+        - $ref: "#/components/schemas/EnvelopeBase"
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                type: object
+                additionalProperties: false
+                required: [type, publishCount, enrollCount, groupRate]
+                properties:
+                  type:
+                    $ref: "#/components/schemas/ActivityType"
+                  publishCount:
+                    type: integer
+                  enrollCount:
+                    type: integer
+                  groupRate:
+                    type: number
+    CreditDistEnvelope:
+      allOf:
+        - $ref: "#/components/schemas/EnvelopeBase"
+        - type: object
+          properties:
+            data:
+              type: object
+              additionalProperties: false
+              required: [EXCELLENT, GOOD, NORMAL, RESTRICTED]
+              properties:
+                EXCELLENT:
+                  type: integer
+                GOOD:
+                  type: integer
+                NORMAL:
+                  type: integer
+                RESTRICTED:
+                  type: integer
+    AdminLog:
+      type: object
+      additionalProperties: false
+      required: [adminId, module, action, target, ip, createTime]
+      properties:
+        adminId:
+          type: integer
+          format: int64
+        module:
+          type: string
+        action:
+          type: string
+        target:
+          type: string
+        ip:
+          type: string
+        createTime:
+          $ref: "#/components/schemas/DateTimeString"
+    AdminLogPageEnvelope:
+      allOf:
+        - $ref: "#/components/schemas/EnvelopeBase"
+        - type: object
+          properties:
+            data:
+              type: object
+              additionalProperties: false
+              required: [total, list]
+              properties:
+                total:
+                  type: integer
+                list:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/AdminLog"
+
+security:
+  - bearerAuth: []

@@ -1,6 +1,6 @@
 # 公共接口契约 v1.0
 
-小程序、Web 用户端、管理后台共用前缀 `/api/v1`。字段与行为以本文为准。服务尚未实现。
+小程序、Web 用户端、管理后台共用前缀 `/api/v1`。**字段名、类型、枚举、HTTP 与 `code` 以 [contracts/openapi.yaml](../contracts/openapi.yaml) 为真源**；本文写行为、状态机与所有权。Agent 先读 [AGENT_CONTRACT.md](../contracts/AGENT_CONTRACT.md)。服务尚未实现。
 
 ## 1. 调用与封套
 
@@ -53,6 +53,7 @@
 
 | # | 方法 | 路径 | 请求 | 成功 data |
 | ---: | --- | --- | --- | --- |
+| — | GET | /health | — | `{ "status":"UP", "service":"campusbuddy" }` 无鉴权，仅探活 |
 | — | POST | /auth/otp/send | `{ "channel":"EMAIL", "campusId", "email" }` | `{ "ttlSec": 300 }` |
 | 1 | POST | /auth/login | `{ "mode":"CAMPUS_PASSWORD"\|"CAMPUS_OTP"\|"WECHAT", "campusId"?, "password"?, "email"?, "otp"?, "code"? }` | `{ accessToken, refreshToken, expiresIn, user }` |
 | 2 | POST | /auth/refresh | `{ "refreshToken" }` | 同登录令牌字段 |

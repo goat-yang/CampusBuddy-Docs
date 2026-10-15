@@ -13,6 +13,19 @@
 
 合计目标约 10800–14600 行有效代码，满足课程不低于 10000 行。后端四人维护同一个 Spring Boot 工程，按模块分包，不要拆成四个服务。
 
+**不要按人名建交代码文件夹**（不要 `A/`、`张三/`）。对照 CoursePilot：模块目录 + Issue/Project 按周拆任务。
+
+| 成员 | 仓库路径 |
+| --- | --- |
+| A | `backend/src/main/java/com/shu/campusbuddy/auth/`、`common/` |
+| B | `backend/src/main/java/com/shu/campusbuddy/activity/` |
+| C | `backend/src/main/java/com/shu/campusbuddy/reco/` |
+| D | `backend/src/main/java/com/shu/campusbuddy/credit/` |
+| E | `miniprogram/` |
+| F | `web/`、`deploy/` |
+
+按周每人任务：[17 周看板](17-weekly-board.md)。环境：[18](18-dev-environment.md)。
+
 子 TRD：[A](trd/a-auth.md) · [B](trd/b-activity.md) · [C](trd/c-reco.md) · [D](trd/d-credit-ops.md) · [E](trd/e-miniprogram.md) · [F](trd/f-web.md)。校园身份规则：[16](16-campus-identity.md)。
 
 ## A 负责：上大邮箱验证码（V1.0 登录主路径）

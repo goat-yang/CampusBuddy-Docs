@@ -1,0 +1,9 @@
+{
+  "code": 40903,
+  "message": "活动已满员",
+  "data": {
+    "field": "remainCount",
+    "retryable": false
+  },
+  "requestId": "44444444-4444-4444-8444-444444444444"
+}

@@ -1,0 +1,18 @@
+{
+  "code": 0,
+  "message": "ok",
+  "data": {
+    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.example",
+    "refreshToken": "refresh-token-example-not-a-secret",
+    "expiresIn": 7200,
+    "user": {
+      "id": 10001,
+      "nickname": "宝山同学",
+      "avatar": "https://cdn.example/avatar.png",
+      "creditScore": 100,
+      "creditLevel": "EXCELLENT",
+      "college": "计算机工程与科学学院"
+    }
+  },
+  "requestId": "77777777-7777-4777-8777-777777777777"
+}

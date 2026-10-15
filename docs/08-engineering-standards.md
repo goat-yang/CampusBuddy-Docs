@@ -4,9 +4,11 @@
 
 ## 1. 结构与依赖
 
+字段以 `contracts/openapi.yaml` 为准，禁止一端 `remainCount` 一端 `leftNum`。未知 JSON 字段拒绝。成功只认 HTTP 200 且 `code===0`。
+
 | 模块 | 结构 | 禁止 |
 | --- | --- | --- |
-| 后端 | controller DTO → service → domain/state machine → mapper | Controller 里扣名额；Entity 直接返回给前端；多套冲突算法 |
+| 后端 | 单仓单应用；controller DTO → service → domain/state machine → mapper | 按人名建目录；Controller 里扣名额；Entity 直接返回给前端；多套冲突算法 |
 | 推荐 | recall → rank → rerank → reason；离线 job 与在线查询分离 | 在线全表扫描算 UserCF；把模型分数当余量 |
 | 小程序 | pages → components → api | 页面里 if 信用分判断能不能报 |
 | Web | views → api adapter → pinia | 每个页复制 Axios；看板前端 reduce 当官方指标 |
@@ -51,7 +53,7 @@ UTF-8、LF。后端 Maven Wrapper + JUnit；Web ESLint/Prettier；小程序按�
 ## 6. 提交前
 
 - 只 stage 任务内文件，不要把问卷回执、密钥和数据库 dump 加进来。
-- 接口变更同步 04 契约。
+- 接口变更同步 `contracts/openapi.yaml`、examples 与 04 契约。
 - 跑与自己模块相关的测试。
 - 写清限制：微信未通、Redis 降级、造数。
 

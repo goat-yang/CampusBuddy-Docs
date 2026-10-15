@@ -1,0 +1,10 @@
+{
+  "code": 0,
+  "message": "ok",
+  "data": {
+    "enrollmentId": 90001,
+    "status": "APPROVED",
+    "remainCount": 4
+  },
+  "requestId": "88888888-8888-4888-8888-888888888888"
+}

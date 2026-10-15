@@ -1,0 +1,7 @@
+{
+  "mode": "CAMPUS_OTP",
+  "campusId": "24123456",
+  "email": "24123456@shu.edu.cn",
+  "otp": "847291",
+  "password": "PlaintextOnlyOnWireOnce"
+}

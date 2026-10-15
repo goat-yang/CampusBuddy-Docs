@@ -1,0 +1,10 @@
+{
+  "code": 42900,
+  "message": "验证码发送过于频繁，请 60 秒后重试",
+  "data": {
+    "field": "otp",
+    "retryable": true,
+    "retryAfterSec": 60
+  },
+  "requestId": "55555555-5555-4555-8555-555555555555"
+}
