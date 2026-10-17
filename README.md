@@ -17,7 +17,7 @@
 | 领取模块 | [A 用户鉴权](docs/trd/a-auth.md)、[B 活动报名](docs/trd/b-activity.md)、[C 推荐](docs/trd/c-reco.md)、[D 信用运营](docs/trd/d-credit-ops.md)、[E 小程序](docs/trd/e-miniprogram.md)、[F Web](docs/trd/f-web.md) |
 | 落地：扫码预览或备案域名 | [部署说明](docs/13-deployment.md)、[开发环境](docs/18-dev-environment.md) |
 | 提交与联调 | [工程规范](docs/08-engineering-standards.md)、[GitHub 协作](docs/09-github-collaboration.md) |
-| 填姓名与账号 | [人员表模板](docs/team/team-signup-template.csv)；填完的表不要提交公开仓库 |
+| 看谁负责哪一块 | [人员表](docs/team/team-signup-template.csv)、[六人分工](docs/05-team-and-modules.md) |
 
 ## 架构
 

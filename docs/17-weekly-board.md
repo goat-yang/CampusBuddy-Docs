@@ -7,14 +7,14 @@ Issue 列表用 label `owner-a`…`owner-f` 或 `week-1`…`week-10` 过滤。
 
 **不要按人名建交代码文件夹。** 代码按模块进仓库：
 
-| 人 | 只往这里交 |
-| --- | --- |
-| A | `backend/.../auth/` 与 `common/` |
-| B | `backend/.../activity/` |
-| C | `backend/.../reco/` |
-| D | `backend/.../credit/` |
-| E | `miniprogram/` |
-| F | `web/`、`deploy/` |
+| 角色 | GitHub | 只往这里交 |
+| --- | --- | --- |
+| A | goat-yang | `backend/.../auth/` 与 `common/` |
+| B | hl-matrix | `backend/.../activity/` |
+| C | Tsuki0798 | `backend/.../reco/` |
+| D | cyyy135 | `backend/.../credit/` |
+| E | lewubai | `miniprogram/` |
+| F | 3099276887 | `web/`、`deploy/` |
 
 第 1–4 周文档和空工程，第 5 周起写业务。史诗 #1–#6 只作模块入口，不当事情本身。
 

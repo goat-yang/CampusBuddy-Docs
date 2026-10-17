@@ -6,7 +6,16 @@
 
 Project：https://github.com/users/goat-yang/projects/2 。新 Issue 若没自动出现，在看板 **Add item** 搜索 `[A1]` 或 `owner-a`。`python scripts/create_github_board.py` 按标题去重。
 
-当前成员 GitHub 账号待收集，收集后 Settings → Collaborators 发邀请，对方接受才有写权限。
+仓库协作者已经是这六人。A goat-yang 是管理员，其余五人有写权限。
+
+| 角色 | GitHub | 模块 |
+| --- | --- | --- |
+| A | goat-yang | 鉴权、上大邮箱验证码 |
+| B | hl-matrix | 活动、报名 |
+| C | Tsuki0798 | 推荐 |
+| D | cyyy135 | 信用、通知、后台接口 |
+| E | lewubai | 小程序 |
+| F | 3099276887 | Web、测试、部署 |
 
 ## 1. 怎么交
 
@@ -27,4 +36,4 @@ Project：https://github.com/users/goat-yang/projects/2 。新 Issue 若没自�
 
 ## 3. 不要提交
 
-`.env`、微信密钥、问卷原始答卷、填好的队员表、数据库 dump。密钥泄露要先在微信/云上作废，再处理历史。
+`.env`、微信密钥、问卷原始答卷、学号、手机号、邮箱、数据库 dump。人员表只放 GitHub 用户名。密钥泄露要先在微信/云上作废，再处理历史。

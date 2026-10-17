@@ -1,28 +1,28 @@
 # 六人分工
 
-六人：四名后端、两名前端。Web 端和小程序端共用同一套后端接口。分工与课程开发方案一致：一人主导一块，跨端互相 backup，文档责任到人。姓名组内填写。
+六人：四名后端、两名前端。Web 端和小程序端共用同一套后端接口。分工与课程开发方案一致：一人主导一块，跨端互相 backup，文档责任到人。表里是 GitHub 用户名。Issue 标题和代码包仍用角色字母，例如 `[A1][W1]`。
 
-| 成员 | 角色 | 主要负责内容 | 预估代码量 |
-| --- | --- | --- | --- |
-| A | 项目经理 / 后端 | 项目计划、需求分析；用户表、学号/工号登录、**上大邮箱验证码**、本平台密码、JWT/RBAC、个人主页 | 1500 行 + 需求文档 |
-| B | 后端开发 | 活动发布与检索、报名状态机、候补递补、签到、收藏 | 1700 行 + 数据库设计文档 |
-| C | 算法 / 后端开发 | 智能推荐：召回、打分、UserCF、离线特征、埋点、推荐配置接口 | 1800 行 + 推荐算法设计说明 |
-| D | 后端开发 | 信用体系、消息通知与定时任务、举报风控、敏感词、管理后台统计接口、Redis | 1600 行 + 接口文档（Knife4j） |
-| E | 小程序前端 | 小程序全部页面：首页推荐流、列表、详情、发布、报名、消息、我的 | 2400 行 |
-| F | Web 前端 / 测试 | Web 用户端与管理后台、ECharts 看板；测试用例、部署文档、演示视频 | 2800 行 + 测试文档 |
+| 角色 | GitHub | 职责 | 主要负责内容 | 预估代码量 |
+| --- | --- | --- | --- | --- |
+| A | [goat-yang](https://github.com/goat-yang) | 项目经理 / 后端 | 项目计划、需求分析；用户表、学号/工号登录、**上大邮箱验证码**、本平台密码、JWT/RBAC、个人主页 | 1500 行 + 需求文档 |
+| B | [hl-matrix](https://github.com/hl-matrix) | 后端开发 | 活动发布与检索、报名状态机、候补递补、签到、收藏 | 1700 行 + 数据库设计文档 |
+| C | [Tsuki0798](https://github.com/Tsuki0798) | 算法 / 后端开发 | 智能推荐：召回、打分、UserCF、离线特征、埋点、推荐配置接口 | 1800 行 + 推荐算法设计说明 |
+| D | [cyyy135](https://github.com/cyyy135) | 后端开发 | 信用体系、消息通知与定时任务、举报风控、敏感词、管理后台统计接口、Redis | 1600 行 + 接口文档（Knife4j） |
+| E | [lewubai](https://github.com/lewubai) | 小程序前端 | 小程序全部页面：首页推荐流、列表、详情、发布、报名、消息、我的 | 2400 行 |
+| F | [3099276887](https://github.com/3099276887) | Web 前端 / 测试 | Web 用户端与管理后台、ECharts 看板；测试用例、部署文档、演示视频 | 2800 行 + 测试文档 |
 
 合计目标约 10800–14600 行有效代码，满足课程不低于 10000 行。后端四人维护同一个 Spring Boot 工程，按模块分包，不要拆成四个服务。
 
 **不要按人名建交代码文件夹**（不要 `A/`、`张三/`）。对照 CoursePilot：模块目录 + **一人一条 Issue**（`[A1][W1]` 这种），不要一周六人挤一张卡。
 
-| 成员 | 仓库路径 |
-| --- | --- |
-| A | `backend/src/main/java/com/shu/campusbuddy/auth/`、`common/` |
-| B | `backend/src/main/java/com/shu/campusbuddy/activity/` |
-| C | `backend/src/main/java/com/shu/campusbuddy/reco/` |
-| D | `backend/src/main/java/com/shu/campusbuddy/credit/` |
-| E | `miniprogram/` |
-| F | `web/`、`deploy/` |
+| 角色 | GitHub | 仓库路径 |
+| --- | --- | --- |
+| A | goat-yang | `backend/src/main/java/com/shu/campusbuddy/auth/`、`common/` |
+| B | hl-matrix | `backend/src/main/java/com/shu/campusbuddy/activity/` |
+| C | Tsuki0798 | `backend/src/main/java/com/shu/campusbuddy/reco/` |
+| D | cyyy135 | `backend/src/main/java/com/shu/campusbuddy/credit/` |
+| E | lewubai | `miniprogram/` |
+| F | 3099276887 | `web/`、`deploy/` |
 
 按周每人任务：[17 周看板](17-weekly-board.md)。环境：[18](18-dev-environment.md)。
 
@@ -30,7 +30,7 @@
 
 下面六节格式相同：做 / 不做 / 验收。邮箱验证码只是 A 模块里的一块，不是「只有 A 有任务」。
 
-## A 负责：鉴权、用户、上大邮箱验证码
+## A · goat-yang：鉴权、用户、上大邮箱验证码
 
 后端所有权在 `auth/` 与 `common/`。D 只提供 Redis，不写发码；E/F 只调接口、画页面。
 
@@ -45,7 +45,7 @@
 
 验收：非上大邮箱 40001；重发 42900；码错 40001；同一学号在小程序和网页登进同一用户。
 
-## B 负责：活动、报名锁、签到、收藏
+## B · hl-matrix：活动、报名锁、签到、收藏
 
 后端所有权在 `activity/`。名额与时间冲突只在 B 实现。
 
@@ -59,7 +59,7 @@
 
 验收：并发上限 1 不超员；幂等键不插第二行；公开列表无草稿/驳回/已下架。
 
-## C 负责：可解释推荐与降级
+## C · Tsuki0798：可解释推荐与降级
 
 后端所有权在 `reco/`。不改报名事务。
 
@@ -72,7 +72,7 @@
 
 验收：Redis 停仍 200 且 `degraded=true`；非法权重 40001；不推荐已满/已结束。
 
-## D 负责：信用流水、通知、风控、后台接口、Redis
+## D · cyyy135：信用流水、通知、风控、后台接口、Redis
 
 后端所有权在 `credit/`。调分只追加流水。
 
@@ -86,7 +86,7 @@
 
 验收：低于 60 禁发布、低于 40 禁报名；后台驳回后列表立即不可见；看板数字只出这些接口。
 
-## E 负责：微信小程序
+## E · lewubai：微信小程序
 
 所有权在 `miniprogram/`。不实现业务规则。
 
@@ -99,7 +99,7 @@
 
 验收：发布 ≤5 步、报名 ≤3 步；与网页同一测试账号能看到同一条活动；`degraded` 不 toast 失败。
 
-## F 负责：Web 用户端、管理后台、测试、部署
+## F · 3099276887：Web 用户端、管理后台、测试、部署
 
 所有权在 `web/` 与 `deploy/`。
 
