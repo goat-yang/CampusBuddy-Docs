@@ -41,9 +41,9 @@
 **ActivityDetail** 在 Card 上增加 `{ description, images, publisherProfile, myEnrollmentStatus, waitNum }`。
 
 **Enrollment** `{ id, activityId, user, status, applyMsg, signupTime }`  
-`status`：`APPLYING|APPROVED|WAITLIST|REJECTED|CANCELED|NOSHOW|DONE`。
+`status`：`APPLYING|APPROVED|WAITLIST|REJECTED|CANCELED|NOSHOW|DONE|UNSETTLED`。未打开「需要确认」时直接 `APPROVED` 并占名额。打开后才是 `APPLYING`，不占正式名额。逾期未确认为 `UNSETTLED`，不加分也不扣分。
 
-活动 `status`：`DRAFT|PENDING|REJECTED|PUBLISHED|SIGNUP|GROUPED|ONGOING|FINISHED|OFFLINE`。对外列表只出现 `PUBLISHED`（未到报名但已审过，可选）与 `SIGNUP`。可报名仅 `SIGNUP`。
+活动 `status`：`DRAFT|PENDING|REJECTED|SIGNUP|GROUPED|ONGOING|FINISHED|OFFLINE`。没有 `PUBLISHED`。审核通过后即为 `SIGNUP`。对外列表出现 `SIGNUP` 和仍有名额的 `GROUPED`。可报名是这两种且未截止、未满员。
 
 ## 3. 接口清单（开发方案 42 条 + 验证码发送）
 
@@ -65,7 +65,7 @@
 
 `CAMPUS_OTP`：校验邮箱验证码后，若该 `campusId` 尚未有密码则请求里必须带 `password`（首次设本平台密码）。`CAMPUS_PASSWORD`：`campusId` + 本平台密码。`WECHAT`：小程序 `code` 换 openid；未绑定 `campusId` 的账号只能浏览，报名/发布返回 40300，`message` 提示先绑定学号。
 
-`/auth/otp/send` 只接受学校邮箱域（见 16）。60 秒内重复发送 → 42900。`channel=SMS` 接口可留枚举，V1.0 固定返回 40001「本期仅支持学校邮箱验证码」。不接收、不转发学校统一认证密码。`mode=SHU_OAUTH` 预留，未获信息办批准前不要实现。
+`/auth/otp/send` 只接受学校邮箱域（见 16）。60 秒内重复发送 → 42900。`channel=SMS` 接口可留枚举，V1.0 固定返回 40001「本期仅支持学校邮箱验证码」。不接收、不转发学校统一认证密码。本期登录 mode 只有 `CAMPUS_PASSWORD`、`CAMPUS_OTP`、`WECHAT`。不实现 `SHU_OAUTH`。学校统一身份登录只有信息办批准后才用来替换邮箱验证码。
 
 ### 活动（8）B
 
@@ -97,6 +97,7 @@
   "minNum": 3,
   "maxNum": 8,
   "imageUrls": [],
+  "needConfirm": false,
   "status": "PENDING"
 }
 ```
@@ -114,9 +115,9 @@
 | 18 | GET | /activities/{id}/enrollments | 仅发起人/管理员 | `{ total, list: Enrollment[] }` |
 | 19 | POST | /enrollments/{id}/audit | `{ "action":"APPROVE"|"REJECT"|"REMOVE", "reason"? }` | Enrollment |
 | 20 | POST | /activities/{id}/sign | `{ "token" }` 签到码或扫码内容 | `{ signed: true }` |
-| 21 | POST | /activities/{id}/finish | `{ "presentUserIds": number[] }` 缺席者记爽约 | `{ creditSettled: true }` |
+| 21 | POST | /activities/{id}/finish | `{ "records": [{ "userId", "present": true\|false }] }` 未出现的人保持待结算 | `{ "marked", "unsettled" }` |
 
-报名顺序：状态=SIGNUP → 未截止 → 未重复 → 余量（满则 WAITLIST，候补开关默认开）→ 时间冲突 → 信用≥40 → 非黑名单。满员且候补关闭 → 40903。冲突 → 40904，`message` 含冲突活动标题与时间。
+报名顺序：状态为 `SIGNUP` 或 `GROUPED` → 未截止 → 未重复 → 未满员 → 时间冲突 → 信用门槛（P1 交付后低于 40 不能报名）→ 非黑名单。未打开「需要确认」则记为 `APPROVED` 并占名额；打开则先记 `APPLYING`，不占正式名额，通过后才占。满员且候补关闭 → 40903。冲突 → 40904，`message` 含冲突活动标题与时间。`APPROVE`/`REJECT` 只用于打开了「需要确认」的活动。
 
 ### 推荐（7）C
 
@@ -130,7 +131,7 @@
 | 27 | POST | /reco/event | `{ batchId, activityId, eventType, position, scene }` | `{ ok: true }` |
 | 28 | POST | /reco/refresh | — | `{ ok: true }` 清该用户缓存 |
 
-`eventType`：`EXPOSE|CLICK|SIGNUP|IGNORE|DISLIKE`。`degraded=true` 时 list 仍是热度榜，前端不弹错误。Redis 不可用必须走这条。
+`eventType`：`EXPOSE|CLICK|SIGNUP|IGNORE|DISLIKE`。`degraded=true` 时 list 仍是热度榜，前端不弹错误。Redis 不可用必须走这条。热门兜底是 P0。加权、理由和埋点是 P1。`factors.cf` 没有相似度数据时为 0，并对其余权重归一化。
 
 ### 信用、消息、收藏、评价、举报（11）D 为主，收藏 B
 

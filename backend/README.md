@@ -10,7 +10,7 @@
 | `com.shu.campusbuddy.reco` | C | 推荐与降级、埋点、权重配置接口 |
 | `com.shu.campusbuddy.credit` | D | 信用流水、通知、敏感词、举报、后台统计 |
 
-JDK 17、Spring Boot 3、MySQL 8、Redis 7。契约：`../contracts/openapi.yaml`。当前只有空工程，没有业务实现。
+JDK 25、Spring Boot 3.5.16、MySQL 8、Redis 7。契约：`../contracts/openapi.yaml`。当前只有空工程，没有业务实现。
 
 ```bash
 ./mvnw -q test

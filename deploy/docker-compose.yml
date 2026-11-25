@@ -38,7 +38,7 @@ services:
       SPRING_DATASOURCE_USERNAME: ${MYSQL_USER:-campusbuddy}
       SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD:-changeme}
       SPRING_DATA_REDIS_HOST: redis
-      JWT_SECRET: ${JWT_SECRET}
+      JWT_SECRET: ${JWT_SECRET:-}
     ports:
       - "8080:8080"
     depends_on:

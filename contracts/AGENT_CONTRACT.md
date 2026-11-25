@@ -8,6 +8,8 @@
 - 不要新增与 OpenAPI 不同名的字段（`leftNum`、`remain`、`token` 当 accessToken）。
 - 不要在客户端判断能不能报名、能不能发布、推荐分怎么算。
 - 不要实现 `SHU_OAUTH`，不要接收学校统一认证密码。
+- 不要增加 `PUBLISHED`。审核通过后状态是 `SIGNUP`。
+- 不要把逾期未确认记成全部到场。未标记的报名是 `UNSETTLED`，不加分也不扣分。
 - 不要把验证码、JWT、学号明文写进日志或示例可复制密钥。
 - 不要在一个 PR 里同时改两个 Owner 的包，除非契约变更且双方都在 PR 里。
 
@@ -48,9 +50,10 @@ E/F 只生成 OpenAPI 里出现过的请求，只读取 OpenAPI 里出现过的�
 
 ## 3. 关键业务（实现时的硬约束）
 
-- 报名：Redis `DECR` 名额 + DB 唯一 `(activity_id, user_id)`。满员候补开 → `status=WAITLIST` 且 HTTP 200 `code=0`；候补关 → HTTP 409 `code=40903`。冲突 → `40904`，message 含冲突活动标题。
-- 信用：只 INSERT 流水再汇总，禁止 `UPDATE users SET credit_score=?`。
-- 推荐：`degraded=true` 时仍 HTTP 200 `code=0`，list 为热度榜；前端不 toast 失败。
+- 报名：未打开 `needConfirm` 时，Redis `DECR` 名额 + DB 唯一 `(activity_id, user_id)`，状态 `APPROVED`。打开 `needConfirm` 时状态 `APPLYING`，不扣正式名额。满员候补开 → `status=WAITLIST` 且 HTTP 200 `code=0`；候补关 → HTTP 409 `code=40903`。冲突 → `40904`，message 含冲突活动标题。`SIGNUP` 和仍有名额的 `GROUPED` 都可以报名。
+- 到场：`finish` 的 `records` 逐人给出 `present`。`true` 为 `DONE`，`false` 为 `NOSHOW`。请求里没有的人保持 `UNSETTLED`。
+- 信用：只 INSERT 流水再汇总，禁止 `UPDATE users SET credit_score=?`。`UNSETTLED` 不写流水。
+- 推荐：热门兜底是 P0。`degraded=true` 时仍 HTTP 200 `code=0`，list 为热度榜；前端不 toast 失败。加权和理由是 P1。没有真实点击时不做协同过滤。
 - 公开列表不得出现未审核活动。
 - OTP：只向学校邮箱域发码；`channel=SMS` → `40001`；60 秒内重发 → `42900`。
 

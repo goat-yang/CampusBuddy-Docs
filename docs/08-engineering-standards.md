@@ -9,7 +9,7 @@
 | 模块 | 结构 | 禁止 |
 | --- | --- | --- |
 | 后端 | 单仓单应用；controller DTO → service → domain/state machine → mapper | 按人名建目录；Controller 里扣名额；Entity 直接返回给前端；多套冲突算法 |
-| 推荐 | recall → rank → rerank → reason；离线 job 与在线查询分离 | 在线全表扫描算 UserCF；把模型分数当余量 |
+| 推荐 | 热门兜底先可用；加权、理由与在线查询分离 | 在线全表扫描算协同过滤；把模型分数当余量 |
 | 小程序 | pages → components → api | 页面里 if 信用分判断能不能报 |
 | Web | views → api adapter → pinia | 每个页复制 Axios；看板前端 reduce 当官方指标 |
 
@@ -44,11 +44,9 @@ Debug 顺序：最小复现 → requestId 串起网关与 service → 看活动 
 
 这些降低已识别风险，不承诺“无安全问题”。
 
-## 5. 构建与行数
+## 5. 构建
 
-UTF-8、LF。后端 Maven Wrapper + JUnit；Web ESLint/Prettier；小程序按微信开发者工具构建。第一次加可执行代码就加 README 启动方式。
-
-有效代码行：去空行去纯注释，排除 target、node_modules、生成代码、静态图。禁止为凑 10000 行加空方法。测试代码计入“测试与脚本”桶，不计业务模块虚高。
+UTF-8、LF。后端 Maven Wrapper + JUnit；Web ESLint/Prettier；小程序按微信开发者工具构建。第一次加可执行代码就加 README 启动方式。不按代码行数验收，也不为凑篇幅加空方法。
 
 ## 6. 提交前
 

@@ -1,6 +1,6 @@
 # 数据模型 v1.0
 
-MySQL 8、utf8mb4。公共字段：`id BIGINT PK`、`create_time`、`update_time`、`deleted`。状态用字符串。共 16 张业务表 + `t_user_similarity` 供 UserCF。
+MySQL 8、utf8mb4。公共字段：`id BIGINT PK`、`create_time`、`update_time`、`deleted`。状态用字符串。共 16 张业务表。`t_user_similarity` 只给以后的协同过滤离线刷新；第一圈可以没有数据，没有相似度时跳过该因子。
 
 ```mermaid
 erDiagram
@@ -32,7 +32,7 @@ erDiagram
 | t_reco_event | 埋点 |
 | t_admin_op_log | 后台日志 |
 | t_subscribe_log | 订阅消息发送 |
-| t_user_similarity | UserCF 相似用户 |
+| t_user_similarity | 协同过滤相似用户，第一圈可空 |
 
 管理员使用 `t_user.role`，口令 BCrypt。
 
@@ -41,9 +41,7 @@ stateDiagram-v2
   [*] --> DRAFT
   DRAFT --> PENDING: 提交审核
   PENDING --> REJECTED: 驳回
-  PENDING --> PUBLISHED: 通过且未到报名
-  PENDING --> SIGNUP: 通过且进入报名
-  PUBLISHED --> SIGNUP: 到达可报名时间
+  PENDING --> SIGNUP: 审核通过，不设已发布
   SIGNUP --> GROUPED: 达人数下限
   SIGNUP --> OFFLINE: 下架或截止未成团
   GROUPED --> ONGOING: 开始
@@ -51,4 +49,4 @@ stateDiagram-v2
   REJECTED --> DRAFT: 修改再提
 ```
 
-报名状态：`APPLYING|APPROVED|WAITLIST|REJECTED|CANCELED|NOSHOW|DONE`。
+报名状态：`APPLYING|APPROVED|WAITLIST|REJECTED|CANCELED|NOSHOW|DONE|UNSETTLED`。未打开「需要确认」时直接 `APPROVED`。打开后先 `APPLYING`，不占正式名额。结束后为 `DONE`、`NOSHOW` 或 `UNSETTLED`。逾期未确认保持 `UNSETTLED`，不自动变成 `DONE`。`SIGNUP` 和仍有名额的 `GROUPED` 都可以报名。

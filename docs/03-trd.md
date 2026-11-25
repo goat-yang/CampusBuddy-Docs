@@ -4,7 +4,7 @@
 | --- | --- |
 | 状态 | 可执行设计与接口约定；服务尚未实现 |
 | 产品 | [PRD](02-prd.md)、[愿景](01-vision-and-scope.md) |
-| 技术 | 小程序原生/Vant；Vue 3/Vite/Pinia/Element Plus/ECharts；JDK 17/Spring Boot 3/MyBatis-Plus/MySQL 8/Redis 7 |
+| 技术 | 小程序原生/Vant；Vue 3/Vite/Pinia/Element Plus/ECharts；JDK 25/Spring Boot 3.5.16/MyBatis-Plus/MySQL 8/Redis 7 |
 | 字段真源 | [接口契约](04-api-contract.md) |
 | 数据真源 | [数据模型](11-data-model.md) |
 | 实现安排 | [开发大纲](10-baseline-and-batches.md)、[A–F 子 TRD](05-team-and-modules.md) |
@@ -54,7 +54,7 @@ flowchart TB
 | 信用加扣 | D：只追加 `t_credit_record` | `UPDATE t_user.credit_score` 不写流水 |
 | 敏感词 | D：写入路径前置 | 先入库再扫 |
 | 推荐降级 | C：三级降级 | 异常时返回空当成功 |
-| 审核生效 | D 写状态，B 列表只读已发布 | 后台改库绕过接口 |
+| 审核生效 | D 把状态写成报名中，B 的公开列表只读报名中和已成团 | 后台改库绕过接口；不单设已发布 |
 
 ## 4. 报名时序
 
@@ -85,7 +85,7 @@ sequenceDiagram
   end
 ```
 
-同一幂等键内容相同则返回首次结果；内容不同返回 409。执行中同键返回 409 `REQUEST_IN_PROGRESS`。
+未打开「需要确认」时，校验通过就扣名额并写入已通过。打开「需要确认」时写入待确认，不扣正式名额。同一幂等键内容相同则返回首次结果；内容不同返回 409。执行中同键返回 409 `REQUEST_IN_PROGRESS`。
 
 ## 5. 非功能与故障
 
