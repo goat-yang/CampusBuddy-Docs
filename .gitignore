@@ -17,4 +17,5 @@ docs/team/team-filled.csv
 docs/private/
 miniprogram/project.private.config.json
 *.jar
+backend/.demo-session.json
 
