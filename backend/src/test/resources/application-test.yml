@@ -1,0 +1,23 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:campusbuddy;MODE=MySQL;DATABASE_TO_LOWER=TRUE;CASE_INSENSITIVE_IDENTIFIERS=TRUE;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: none
+  flyway:
+    enabled: true
+campusbuddy:
+  jwt:
+    secret: test-jwt-secret-0123456789abcdef
+  otp:
+    redis-host: ""
+  demo:
+    campus-id: ""
+    password: ""
+logging:
+  level:
+    root: WARN
+    com.shu.campusbuddy: INFO

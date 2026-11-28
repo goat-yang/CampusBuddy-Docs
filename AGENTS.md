@@ -1,6 +1,6 @@
 # CampusBuddy：开发 Agent 规范
 
-当前是文档、契约与空工程阶段；业务服务尚未实现。**按下面顺序读，不要跳过契约直接写 DTO。**
+A 的鉴权、用户资料和公共封套已实现。B/C/D 的业务服务尚未实现。**按下面顺序读，不要跳过契约直接写 DTO。**
 
 1. [contracts/AGENT_CONTRACT.md](contracts/AGENT_CONTRACT.md)
 2. [contracts/openapi.yaml](contracts/openapi.yaml)（字段、类型、枚举、HTTP/`code` 真源）
