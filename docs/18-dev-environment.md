@@ -36,7 +36,7 @@ docker tag dockerproxy.net/library/redis:7-alpine redis:7-alpine
 
 `dockerproxy.net` 不可用时再试 `docker.1panel.live`、`docker.m.daocloud.io`。不要把镜像站前缀写进 `docker-compose.yml`。
 
-后端（A 的鉴权已可测，B/C/D 尚未实现）：
+后端（空工程）：
 
 ```bash
 cd backend

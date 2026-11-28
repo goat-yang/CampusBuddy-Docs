@@ -1,6 +1,6 @@
 # 公共接口契约 v1.0
 
-小程序、Web 用户端、管理后台共用前缀 `/api/v1`。**字段名、类型、枚举、HTTP 与 `code` 以 [contracts/openapi.yaml](../contracts/openapi.yaml) 为真源**；本文写行为、状态机与所有权。Agent 先读 [AGENT_CONTRACT.md](../contracts/AGENT_CONTRACT.md)。认证与用户（A）已实现，其余模块尚未实现。
+小程序、Web 用户端、管理后台共用前缀 `/api/v1`。**字段名、类型、枚举、HTTP 与 `code` 以 [contracts/openapi.yaml](../contracts/openapi.yaml) 为真源**；本文写行为、状态机与所有权。Agent 先读 [AGENT_CONTRACT.md](../contracts/AGENT_CONTRACT.md)。服务尚未实现。
 
 ## 1. 调用与封套
 
